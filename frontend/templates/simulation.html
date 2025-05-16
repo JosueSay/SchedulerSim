@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simulación - Diagrama de Gantt</title>
+    <link rel="stylesheet" href="/static/css/common.css" />
+    <link rel="stylesheet" href="/static/css/simulation.css" />
+  </head>
+  <body onload="initializeSimulation();">
+    <h1>Resultado de la Simulación</h1>
+
+    <!-- Diagrama de Gantt -->
+    <div id="gantt-container" class="card">
+      <h2>Diagrama de Gantt</h2>
+      <!-- Ciclo Actual -->
+      <div id="cycle-counter" class="cycle-counter"></div>
+      <div id="gantt-scroll">
+        <table id="gantt-table"></table>
+      </div>
+      <div class="legend" id="gantt-legend"></div>
+    </div>
+
+    <!-- Controles de Simulación -->
+    <div class="simulation-controls">
+      <button class="control-button pause" onclick="pauseSimulation()">
+        Pausar
+      </button>
+      <button class="control-button resume" onclick="resumeSimulation()">
+        Continuar
+      </button>
+    </div>
+
+    <!-- Métricas -->
+    <div id="metrics-panel" class="card"></div>
+
+    <!-- Navegación -->
+    <div style="text-align: center; margin-top: 30px">
+      <button class="main-button" onclick="restartSimulation();">
+        Reiniciar Configuración
+      </button>
+      <button class="main-button" onclick="returnHome();">
+        Volver a Inicio
+      </button>
+    </div>
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/simulation.js"></script>
+  </body>
+</html>
