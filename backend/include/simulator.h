@@ -136,6 +136,17 @@ typedef struct
 } SimulationMetrics;
 
 /**
+ * Funciones para Nétricas y Resultados
+ */
+
+// Cálculo de métricas
+SimulationMetrics calculateMetrics(Process *processes, int processCount);
+
+// Exportación de resultados
+void exportTimelineEvents(const char *filename, TimelineEvent *events, int eventCount);
+void exportMetrics(const char *filename, SimulationMetrics metrics);
+
+/**
  * Funciones de Control de Simulación
  */
 void startSimulation(SimulationControl *control);

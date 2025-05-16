@@ -228,3 +228,5 @@ dkms.conf
 
 .markdownlint.json
 *.pdf
+.vscode
+bin/
