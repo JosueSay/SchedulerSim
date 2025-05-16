@@ -7,6 +7,42 @@ function initializeIndex() {
   );
 }
 
+function validateTxtContent(type, content) {
+  const lines = content.trim().split("\n");
+  const regexPatterns = {
+    procesos: /^[A-Za-z0-9]+,\s*\d+,\s*\d+,\s*\d+$/,
+    recursos: /^[A-Za-z0-9]+,\s*\d+$/,
+    acciones: /^[A-Za-z0-9]+,\s*(READ|WRITE),\s*[A-Za-z0-9]+,\s*\d+$/,
+  };
+
+  const pattern = regexPatterns[type];
+  if (!pattern) return false;
+
+  for (const [index, line] of lines.entries()) {
+    if (!pattern.test(line.trim())) {
+      alert(
+        `Error en ${type}.txt en la línea ${
+          index + 1
+        }:\n"${line.trim()}"\nCorrige el formato.`
+      );
+      return false;
+    }
+  }
+  return true;
+}
+
+async function validateAndReadFile(file, type) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      const isValid = validateTxtContent(type, content);
+      resolve(isValid);
+    };
+    reader.readAsText(file);
+  });
+}
+
 async function uploadAll() {
   const files = {
     procesos: document.getElementById("procesos").files[0],
@@ -20,18 +56,35 @@ async function uploadAll() {
     return;
   }
 
-  // Validar nombres correctos de los archivos
+  // Validar nombres correctos
   if (
     files.procesos.name.toLowerCase() !== "procesos.txt" ||
     files.recursos.name.toLowerCase() !== "recursos.txt" ||
     files.acciones.name.toLowerCase() !== "acciones.txt"
   ) {
     alert(
-      "Los archivos deben llamarse exactamente:\n" +
-        "- procesos.txt\n- recursos.txt\n- acciones.txt"
+      "Los archivos deben llamarse exactamente:\n- procesos.txt\n- recursos.txt\n- acciones.txt"
     );
     return;
   }
+
+  if (
+    !files.procesos.name.toLowerCase().endsWith(".txt") ||
+    !files.recursos.name.toLowerCase().endsWith(".txt") ||
+    !files.acciones.name.toLowerCase().endsWith(".txt")
+  ) {
+    alert("Todos los archivos deben tener extensión .txt.");
+    return;
+  }
+
+  // Validar Contenido de los Archivos
+  const validations = await Promise.all([
+    validateAndReadFile(files.procesos, "procesos"),
+    validateAndReadFile(files.recursos, "recursos"),
+    validateAndReadFile(files.acciones, "acciones"),
+  ]);
+
+  if (validations.includes(false)) return; // Detener si algún archivo es inválido
 
   const formData = new FormData();
   formData.append("files", files.procesos);
@@ -44,7 +97,7 @@ async function uploadAll() {
   });
 
   if (response.ok) {
-    allowAccess(); // Habilita acceso a /config
+    allowAccess();
     window.location.href = "/config";
   } else {
     alert("Error al subir los archivos.");
