@@ -12,29 +12,41 @@ function onAlgorithmChange() {
 }
 
 function validateSimulationConfig(config) {
-  // Validar ciclo inicial
   if (config.startCycle < 0) {
-    alert("El ciclo inicial no puede ser negativo.");
+    showAlert(
+      "Error de Configuración",
+      "El ciclo inicial no puede ser negativo.",
+      "error"
+    );
     return false;
   }
 
-  // Validar ciclos máximos
   if (config.maxCycles < 0) {
-    alert("Los ciclos máximos no pueden ser negativos.");
+    showAlert(
+      "Error de Configuración",
+      "Los ciclos máximos no pueden ser negativos.",
+      "error"
+    );
     return false;
   }
 
-  // Validar quantum si es Round Robin
   if (config.algorithm === "RR") {
     if (!config.quantum || parseInt(config.quantum) <= 0) {
-      alert("El quantum debe ser un número positivo para Round Robin.");
+      showAlert(
+        "Error de Quantum",
+        "El quantum debe ser un número positivo para Round Robin.",
+        "warning"
+      );
       return false;
     }
   }
 
-  // Validar preemptive solo para Priority Scheduling (PS)
   if (config.algorithm !== "PS" && config.isPreemptive !== "0") {
-    alert("El modo preventivo solo aplica para Priority Scheduling.");
+    showAlert(
+      "Configuración Incorrecta",
+      "El modo preventivo solo aplica para Priority Scheduling.",
+      "info"
+    );
     return false;
   }
 
@@ -53,6 +65,9 @@ function startSimulation() {
   if (!validateSimulationConfig(config)) return;
 
   console.log("[DEBUG] Configuración de Simulación:", config);
-  alert("Simulación configurada correctamente. (Falta integrar con Backend)");
-  // TODO: Enviar al backend cuando esté implementado.
+  showAlert(
+    "Simulación Configurada",
+    "Configuración completada. (Falta integrar con Backend)",
+    "success"
+  );
 }

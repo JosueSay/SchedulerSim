@@ -20,10 +20,12 @@ function validateTxtContent(type, content) {
 
   for (const [index, line] of lines.entries()) {
     if (!pattern.test(line.trim())) {
-      alert(
-        `Error en ${type}.txt en la línea ${
+      showAlert(
+        "Error de Formato",
+        `Archivo: <strong>${type}.txt</strong><br>Línea ${
           index + 1
-        }:\n"${line.trim()}"\nCorrige el formato.`
+        }:<br>"${line.trim()}"<br>Corrige el formato.`,
+        "error"
       );
       return false;
     }
@@ -50,20 +52,24 @@ async function uploadAll() {
     acciones: document.getElementById("acciones").files[0],
   };
 
-  // Validar existencia de los 3 archivos
   if (!files.procesos || !files.recursos || !files.acciones) {
-    alert("Debes seleccionar los 3 archivos antes de subir.");
+    showAlert(
+      "Archivos Incompletos",
+      "Debes seleccionar los 3 archivos antes de subir.",
+      "warning"
+    );
     return;
   }
 
-  // Validar nombres correctos
   if (
     files.procesos.name.toLowerCase() !== "procesos.txt" ||
     files.recursos.name.toLowerCase() !== "recursos.txt" ||
     files.acciones.name.toLowerCase() !== "acciones.txt"
   ) {
-    alert(
-      "Los archivos deben llamarse exactamente:\n- procesos.txt\n- recursos.txt\n- acciones.txt"
+    showAlert(
+      "Nombre Incorrecto",
+      "Los archivos deben llamarse exactamente:<br>- procesos.txt<br>- recursos.txt<br>- acciones.txt",
+      "warning"
     );
     return;
   }
@@ -73,18 +79,21 @@ async function uploadAll() {
     !files.recursos.name.toLowerCase().endsWith(".txt") ||
     !files.acciones.name.toLowerCase().endsWith(".txt")
   ) {
-    alert("Todos los archivos deben tener extensión .txt.");
+    showAlert(
+      "Formato Incorrecto",
+      "Todos los archivos deben tener extensión <strong>.txt</strong>.",
+      "warning"
+    );
     return;
   }
 
-  // Validar Contenido de los Archivos
   const validations = await Promise.all([
     validateAndReadFile(files.procesos, "procesos"),
     validateAndReadFile(files.recursos, "recursos"),
     validateAndReadFile(files.acciones, "acciones"),
   ]);
 
-  if (validations.includes(false)) return; // Detener si algún archivo es inválido
+  if (validations.includes(false)) return;
 
   const formData = new FormData();
   formData.append("files", files.procesos);
@@ -97,10 +106,11 @@ async function uploadAll() {
   });
 
   if (response.ok) {
+    showAlert("Éxito", "Archivos subidos correctamente.", "success");
     allowAccess();
-    window.location.href = "/config";
+    setTimeout(() => (window.location.href = "/config"), 1500);
   } else {
-    alert("Error al subir los archivos.");
+    showAlert("Error", "Error al subir los archivos.", "error");
   }
 }
 
