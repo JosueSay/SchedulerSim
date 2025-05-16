@@ -1,23 +1,27 @@
 async function initializeConfig() {
   const hasRouteAccess = await checkRouteAccess("/config");
   if (!hasRouteAccess) return;
-  // Configuración inicial si tiene acceso.
 }
 
 function onAlgorithmChange() {
   const algorithm = document.getElementById("algorithm").value;
-  const quantumConfig = document.getElementById("quantum-config");
-  quantumConfig.style.display = algorithm === "RR" ? "flex" : "none";
+  document.getElementById("quantum-config").style.display =
+    algorithm === "RR" ? "flex" : "none";
+  document.getElementById("preemptive-config").style.display =
+    algorithm === "PS" ? "flex" : "none";
 }
 
 function startSimulation() {
   const config = {
     algorithm: document.getElementById("algorithm").value,
     quantum: document.getElementById("quantum").value || null,
-    mode: document.querySelector('input[name="mode"]:checked').value,
-    cycles: document.getElementById("cycles").value,
+    isPreemptive:
+      document.querySelector('input[name="preemptive"]:checked')?.value || 0,
+    startCycle: parseInt(document.getElementById("startCycle").value),
+    maxCycles: parseInt(document.getElementById("maxCycles").value),
   };
 
-  console.log("Configuración seleccionada:", config);
-  alert("Simulación configurada. (Integrar con backend próximamente)");
+  console.log("[DEBUG] Configuración de Simulación:", config);
+  alert("Simulación configurada. (Falta integrar con Backend)");
+  // TODO: Enviar al backend cuando esté implementado.
 }
