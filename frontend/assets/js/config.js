@@ -15,8 +15,7 @@ function startSimulation() {
   const config = {
     algorithm: document.getElementById("algorithm").value,
     quantum: document.getElementById("quantum").value || null,
-    isPreemptive:
-      document.querySelector('input[name="preemptive"]:checked')?.value || 0,
+    isPreemptive: document.getElementById("isPreemptive").value,
     startCycle: parseInt(document.getElementById("startCycle").value),
     maxCycles: parseInt(document.getElementById("maxCycles").value),
   };
