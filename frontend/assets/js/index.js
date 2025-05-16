@@ -1,4 +1,7 @@
 function initializeIndex() {
+  console.log("[DEBUG] Entrando a '/', eliminando acceso previo.");
+  denyAccess(); // Esto revoca el acceso a /config al volver a la raíz.
+
   ["procesos", "recursos", "acciones"].forEach((type) =>
     loadFilePreview(type, `${type}.txt`)
   );

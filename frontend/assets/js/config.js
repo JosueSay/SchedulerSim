@@ -1,5 +1,6 @@
-function initializeConfig() {
-  if (!checkRouteAccess("/config")) return;
+async function initializeConfig() {
+  const hasRouteAccess = await checkRouteAccess("/config");
+  if (!hasRouteAccess) return;
   // Configuración inicial si tiene acceso.
 }
 
