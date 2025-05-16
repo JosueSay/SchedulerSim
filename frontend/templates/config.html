@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <title>Configuración de Simulación</title>
-    <link href="/static/styles.css" rel="stylesheet" />
+    <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
+    <link href="/static/css/common.css" rel="stylesheet" />
+    <link href="/static/css/config.css" rel="stylesheet" />
   </head>
-  <body>
+  <body onload="initializeConfig();">
     <h1>Configuración de la Simulación</h1>
 
     <form id="config-form">
       <div class="card">
         <label for="algorithm">Algoritmo de Planificación:</label>
-        <select id="algorithm" name="algorithm" onchange="onAlgorithmChange()">
+        <select id="algorithm" name="algorithm" onchange="onAlgorithmChange();">
           <option value="FIFO" selected>FIFO (First In, First Out)</option>
           <!-- Futuras opciones aquí -->
         </select>
@@ -36,31 +38,13 @@
       </div>
 
       <div style="text-align: center; margin-top: 30px">
-        <button type="button" class="main-button" onclick="startSimulation()">
+        <button type="button" class="main-button" onclick="startSimulation();">
           Iniciar Simulación
         </button>
       </div>
     </form>
 
-    <script>
-      function onAlgorithmChange() {
-        const algorithm = document.getElementById("algorithm").value;
-        const quantumConfig = document.getElementById("quantum-config");
-        quantumConfig.style.display = algorithm === "RR" ? "flex" : "none";
-      }
-
-      function startSimulation() {
-        const config = {
-          algorithm: document.getElementById("algorithm").value,
-          quantum: document.getElementById("quantum").value || null,
-          mode: document.querySelector('input[name="mode"]:checked').value,
-          cycles: document.getElementById("cycles").value,
-        };
-
-        console.log("Configuración seleccionada:", config);
-        alert("Simulación configurada. (Integrar con backend próximamente)");
-        // TODO: Aquí haremos la llamada al backend en la siguiente fase
-      }
-    </script>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/config.js"></script>
   </body>
 </html>
