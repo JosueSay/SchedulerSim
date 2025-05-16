@@ -43,8 +43,7 @@ h1 {
     max-height: 30rem; /* Área máxima de visualización de la tabla */
     overflow-x: auto; /* Scroll horizontal si se excede el ancho */
     overflow-y: auto; /* Scroll vertical si se excede la altura */
-    border: 1px solid #ccc;
-    border-radius: 0.7rem;
+    border-radius: 0.5rem;
     background: #fff;
     box-sizing: border-box;
 }
