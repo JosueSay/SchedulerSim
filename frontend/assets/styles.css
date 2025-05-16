@@ -1,0 +1,164 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    text-align: center;
+    padding: 50px;
+    color: #333;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+form {
+    margin-bottom: 30px;
+}
+
+input[type="file"] {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+p {
+    font-size: 1.1em;
+    color: #555;
+}
+
+.file-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 15px;
+}
+
+label {
+    width: 100px;
+    text-align: left;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+input[type="file"] {
+    margin-right: 10px;
+}
+
+.preview-box {
+    background: #f4f4f4;
+    padding: 10px;
+    margin-left: 20px;
+    border-radius: 5px;
+    width: 300px;
+    height: 60px;
+    overflow: auto;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px auto;
+    width: 80%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 20px;
+}
+
+.content {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.content label {
+    font-weight: bold;
+    margin-right: 15px;
+    font-size: 1.1em;
+}
+
+input[type="file"] {
+    margin-right: 15px;
+}
+
+button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+.example {
+    background: #f0f0f0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: 200px;
+    text-align: left;
+    font-size: 0.9em;
+    color: #555;
+}
+
+
+.main-button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 16px 32px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.main-button:hover {
+    background-color: #2980b9;
+}
+
+
+select, input[type="number"] {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    width: 200px;
+}
+
+input[type="radio"] {
+    margin-left: 15px;
+    margin-right: 5px;
+}

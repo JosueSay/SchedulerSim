@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simulador de Planificación</title>
+    <link href="/static/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <h1>Simulador de Planificación</h1>
+
+    <form id="upload-form" enctype="multipart/form-data">
+      <div class="card">
+        <img src="/static/txt-icon.png" alt="Procesos" class="icon" />
+        <div class="content">
+          <label>Procesos:</label>
+          <input type="file" id="procesos" name="procesos" />
+        </div>
+        <div class="example"><strong>Ejemplo:</strong><br />P1, 8, 0, 1</div>
+      </div>
+
+      <div class="card">
+        <img src="/static/txt-icon.png" alt="Recursos" class="icon" />
+        <div class="content">
+          <label>Recursos:</label>
+          <input type="file" id="recursos" name="recursos" />
+        </div>
+        <div class="example"><strong>Ejemplo:</strong><br />R1, 1</div>
+      </div>
+
+      <div class="card">
+        <img src="/static/txt-icon.png" alt="Acciones" class="icon" />
+        <div class="content">
+          <label>Acciones:</label>
+          <input type="file" id="acciones" name="acciones" />
+        </div>
+        <div class="example">
+          <strong>Ejemplo:</strong><br />P1, READ, R1, 0
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 50px">
+        <button type="button" class="main-button" onclick="uploadAll()">
+          Subir Archivos
+        </button>
+      </div>
+    </form>
+
+    <script>
+      async function uploadSingleFile(type) {
+        const input = document.getElementById(type);
+        if (!input.files.length) {
+          alert("Selecciona un archivo para " + type);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("files", input.files[0]);
+
+        await fetch("/upload/", { method: "POST", body: formData });
+        loadFilePreview(type, input.files[0].name);
+      }
+
+      async function loadFilePreview(type, filename) {
+        const response = await fetch(`/files/`);
+        const files = await response.json();
+
+        const preview = files.find((f) => f.name === filename);
+        document.getElementById(`preview-${type}`).textContent = preview
+          ? preview.preview
+          : "Sin vista previa.";
+      }
+
+      async function uploadAll() {
+        const files = {
+          procesos: document.getElementById("procesos").files[0],
+          recursos: document.getElementById("recursos").files[0],
+          acciones: document.getElementById("acciones").files[0],
+        };
+
+        if (!files.procesos || !files.recursos || !files.acciones) {
+          alert("Debes seleccionar los 3 archivos antes de subir.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("files", files.procesos);
+        formData.append("files", files.recursos);
+        formData.append("files", files.acciones);
+
+        await fetch("/upload/", { method: "POST", body: formData });
+
+        // Redirigir a la vista de configuración
+        window.location.href = "/config";
+      }
+
+      window.onload = () => {
+        ["procesos", "recursos", "acciones"].forEach((type) =>
+          loadFilePreview(type, `${type}.txt`)
+        );
+      };
+    </script>
+  </body>
+</html>
