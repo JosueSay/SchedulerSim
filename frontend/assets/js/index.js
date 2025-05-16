@@ -1,6 +1,6 @@
 function initializeIndex() {
   console.log("[DEBUG] Entrando a '/', eliminando acceso previo.");
-  denyAccess(); // Esto revoca el acceso a /config al volver a la raíz.
+  denyAccess();
 
   ["procesos", "recursos", "acciones"].forEach((type) =>
     loadFilePreview(type, `${type}.txt`)
@@ -14,8 +14,22 @@ async function uploadAll() {
     acciones: document.getElementById("acciones").files[0],
   };
 
+  // Validar existencia de los 3 archivos
   if (!files.procesos || !files.recursos || !files.acciones) {
     alert("Debes seleccionar los 3 archivos antes de subir.");
+    return;
+  }
+
+  // Validar nombres correctos de los archivos
+  if (
+    files.procesos.name.toLowerCase() !== "procesos.txt" ||
+    files.recursos.name.toLowerCase() !== "recursos.txt" ||
+    files.acciones.name.toLowerCase() !== "acciones.txt"
+  ) {
+    alert(
+      "Los archivos deben llamarse exactamente:\n" +
+        "- procesos.txt\n- recursos.txt\n- acciones.txt"
+    );
     return;
   }
 
