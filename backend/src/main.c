@@ -1,4 +1,5 @@
 #include "simulator.h"
+#include "fifo.h" // Incluir la cabecera de FIFO
 #include <stdio.h>
 
 #define MAX_PROCESSES 100
@@ -12,6 +13,8 @@ int main()
   Resource resources[MAX_RESOURCES];
   Action actions[MAX_ACTIONS];
   TimelineEvent timelineEvents[MAX_EVENTS];
+  SimulationControl control = {SIMULATION_NOT_STARTED, 0, 0, 1, {ALGO_FIFO, 0, 0}};
+  int eventCount = 0;
 
   int processCount = loadProcesses("../data/input/procesos.txt", processes, MAX_PROCESSES);
   int resourceCount = loadResources("../data/input/recursos.txt", resources, MAX_RESOURCES);
@@ -47,8 +50,7 @@ int main()
            actions[i].cycle);
   }
 
-  // Simulación de eventos de timeline (simplemente asignando valores para probar)
-  int eventCount = 0;
+  // Simulación de eventos de timeline (provisional)
   for (int i = 0; i < processCount; i++)
   {
     timelineEvents[eventCount].startCycle = processes[i].arrivalTime;
@@ -58,16 +60,25 @@ int main()
     eventCount++;
   }
 
-  // Calcular métricas ficticias para probar exportación
   SimulationMetrics metrics = calculateMetrics(processes, processCount);
 
-  // Exportar resultados
   exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
   exportMetrics("../data/output/metrics.txt", metrics);
 
-  printf("\n=== Resultados Exportados ===\n");
-  printf("Métricas: ../data/output/metrics.txt\n");
-  printf("Timeline: ../data/output/timeline.txt\n");
+  printf("\n=== Ejecutando Simulación FIFO ===\n");
+
+  // Ejecutar FIFO real
+  eventCount = 0; // Resetear contador de eventos antes de la simulación real
+  simulateFIFO(processes, processCount, timelineEvents, &eventCount, &control);
+
+  // Calcular métricas basadas en la simulación real
+  metrics = calculateMetrics(processes, processCount);
+
+  // Exportar resultados reales
+  exportMetrics("../data/output/metrics.txt", metrics);
+  exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
+
+  printf("Métricas y Timeline exportados a ../data/output/\n");
 
   return 0;
 }
