@@ -103,7 +103,10 @@ h1 {
   font-size: 1.5em;
   color: #2c3e50;
   margin-top: 20px;
-  margin-bottom: 20px;
   text-align: center;
   padding-bottom: 1rem;
+}
+
+.simulation-status {
+  margin-bottom: 20px;
 }

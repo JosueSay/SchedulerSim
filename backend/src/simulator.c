@@ -14,12 +14,10 @@ const char *getProcessStateName(ProcessState state)
   {
   case STATE_NEW:
     return "NEW";
-  case STATE_READY:
-    return "READY";
-  case STATE_RUNNING:
-    return "RUNNING";
   case STATE_WAITING:
     return "WAITING";
+  case STATE_ACCESSED:
+    return "ACCESSED";
   case STATE_TERMINATED:
     return "TERMINATED";
   default:
@@ -41,8 +39,6 @@ const char *getActionTypeName(ActionType action)
     return "READ";
   case ACTION_WRITE:
     return "WRITE";
-  case ACTION_NONE:
-    return "NONE";
   default:
     return "UNKNOWN";
   }
@@ -186,10 +182,6 @@ int loadActions(const char *filename, Action *actions, int maxActions)
       else if (strcmp(actionStr, "WRITE") == 0)
       {
         actions[count].action = ACTION_WRITE;
-      }
-      else
-      {
-        actions[count].action = ACTION_NONE;
       }
       count++;
     }

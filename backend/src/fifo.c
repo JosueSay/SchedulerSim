@@ -90,7 +90,7 @@ void simulateFIFO(Process *processes, int processCount,
       snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
       events[*eventCount].startCycle = currentTime;
       events[*eventCount].endCycle = currentTime + 1;
-      events[*eventCount].state = STATE_RUNNING;
+      events[*eventCount].state = STATE_ACCESSED;
 
       exportEventRealtime(&events[*eventCount]);
 
@@ -108,6 +108,5 @@ void simulateFIFO(Process *processes, int processCount,
   {
     control->currentCycle = currentTime;
     control->totalCycles = currentTime;
-    control->state = SIMULATION_FINISHED;
   }
 }

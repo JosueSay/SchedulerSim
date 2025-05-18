@@ -33,26 +33,12 @@ typedef struct
 } SimulationConfig;
 
 /**
- * Enumeración de Estados de la Simulación
- */
-typedef enum
-{
-  SIMULATION_NOT_STARTED,
-  SIMULATION_RUNNING,
-  SIMULATION_PAUSED,
-  SIMULATION_FINISHED,
-  SIMULATION_CLEANING
-} SimulationState;
-
-/**
  * Estructura de Control de Simulación
  */
 typedef struct
 {
-  SimulationState state;
   int currentCycle;
   int totalCycles;
-  int isConfigured;
   SimulationConfig config;
 } SimulationControl;
 
@@ -62,18 +48,10 @@ typedef struct
 typedef enum
 {
   STATE_NEW,
-  STATE_READY,
-  STATE_RUNNING,
   STATE_WAITING,
+  STATE_ACCESSED,
   STATE_TERMINATED
 } ProcessState;
-
-typedef enum
-{
-  ACTION_READ,
-  ACTION_WRITE,
-  ACTION_NONE // Por defecto si no se ha definido
-} ActionType;
 
 /**
  * Estructura para representar un Proceso
@@ -102,6 +80,12 @@ typedef struct
   int counter;
   int isLocked; // 0: libre, 1: bloqueado (para sincronización)
 } Resource;
+
+typedef enum
+{
+  ACTION_READ,
+  ACTION_WRITE,
+} ActionType;
 
 /**
  * Estructura para representar una Acción de Sincronización

@@ -13,7 +13,7 @@ int main()
   Resource resources[MAX_RESOURCES];
   Action actions[MAX_ACTIONS];
   TimelineEvent timelineEvents[MAX_EVENTS];
-  SimulationControl control = {SIMULATION_NOT_STARTED, 0, 0, 1, {ALGO_FIFO, 0, 0}};
+  SimulationControl control = {0, 0, {ALGO_FIFO, 0, 0}};
   int eventCount = 0;
 
   int processCount = loadProcesses("../data/input/procesos.txt", processes, MAX_PROCESSES);
@@ -29,6 +29,25 @@ int main()
            processes[i].arrivalTime,
            processes[i].priority,
            getProcessStateName(processes[i].state));
+  }
+
+  printf("\n=== Recursos Cargados (%d) ===\n", resourceCount);
+  for (int i = 0; i < resourceCount; i++)
+  {
+    printf("Nombre: %s, Contador: %d, Estado (isLocked): %d\n",
+           resources[i].name,
+           resources[i].counter,
+           resources[i].isLocked);
+  }
+
+  printf("\n=== Acciones Cargadas (%d) ===\n", actionCount);
+  for (int i = 0; i < actionCount; i++)
+  {
+    printf("PID: %s, Acción: %d, Recurso: %s, Ciclo: %d\n",
+           actions[i].pid,
+           actions[i].action,
+           actions[i].resourceName,
+           actions[i].cycle);
   }
 
   printf("\n=== Ejecutando Simulación FIFO en Tiempo Real ===\n");
