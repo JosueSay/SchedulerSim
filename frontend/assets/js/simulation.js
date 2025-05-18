@@ -144,20 +144,6 @@ function initializeSimulation() {
 }
 
 /**
- * Pausa la simulación enviando comando por WebSocket
- */
-function pauseSimulation() {
-  if (ws) ws.send(JSON.stringify({ command: "pause" }));
-}
-
-/**
- * Reanuda la simulación enviando comando por WebSocket
- */
-function resumeSimulation() {
-  if (ws) ws.send(JSON.stringify({ command: "resume" }));
-}
-
-/**
  * Reinicia la simulación limpiando tabla y ciclo,
  * cerrando y reiniciando WebSocket
  */

@@ -2,63 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*
- * Inicia la simulación.
- * @param control: Puntero al controlador de simulación.
- */
-void startSimulation(SimulationControl *control)
-{
-  if (control == NULL)
-    return;
-  control->state = SIMULATION_RUNNING;
-  control->currentCycle = 0;
-}
-
-/*
- * Pausa la simulación si se está ejecutando.
- * @param control: Puntero al controlador de simulación.
- */
-void pauseSimulation(SimulationControl *control)
-{
-  if (control == NULL)
-    return;
-  if (control->state == SIMULATION_RUNNING)
-  {
-    control->state = SIMULATION_PAUSED;
-  }
-}
-
-/*
- * Reanuda la simulación si está en pausa.
- * @param control: Puntero al controlador de simulación.
- */
-void resumeSimulation(SimulationControl *control)
-{
-  if (control == NULL)
-    return;
-  if (control->state == SIMULATION_PAUSED)
-  {
-    control->state = SIMULATION_RUNNING;
-  }
-}
-
-/*
- * Reinicia la simulación a su estado inicial.
- * @param control: Puntero al controlador de simulación.
- */
-void resetSimulation(SimulationControl *control)
-{
-  if (control == NULL)
-    return;
-  control->state = SIMULATION_NOT_STARTED;
-  control->currentCycle = 0;
-  control->totalCycles = 0;
-  control->isConfigured = 0;
-  control->config.algorithm = ALGO_NONE;
-  control->config.quantum = 0;
-  control->config.isPreemptive = 0;
-}
-
 /**
  * Devuelve el nombre en cadena del estado de un proceso dado su enum.
  *

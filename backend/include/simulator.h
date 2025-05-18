@@ -147,14 +147,6 @@ void exportTimelineEvents(const char *filename, TimelineEvent *events, int event
 void exportMetrics(const char *filename, SimulationMetrics metrics);
 
 /**
- * Funciones de Control de Simulación
- */
-void startSimulation(SimulationControl *control);
-void pauseSimulation(SimulationControl *control);
-void resumeSimulation(SimulationControl *control);
-void resetSimulation(SimulationControl *control);
-
-/**
  * Funciones para carga y manejo de datos
  */
 int loadProcesses(const char *filename, Process *processes, int maxProcesses);

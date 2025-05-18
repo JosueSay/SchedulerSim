@@ -85,7 +85,7 @@ async def simulation_page(request: Request):
 
 
 @app.websocket("/ws/simulation")
-async def websocket_simulation(websocket: WebSocket):
+async def websocketSimulation(websocket: WebSocket):
     """
     WebSocket que ejecuta la simulación en tiempo real.
 
