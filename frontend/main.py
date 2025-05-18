@@ -26,7 +26,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "prod")
 
 
 @app.get("/environment/")
-async def get_environment():
+async def getEnvironment():
     """Devuelve el entorno actual de ejecución."""
     return {"environment": ENVIRONMENT}
 
@@ -79,7 +79,7 @@ async def uploadFiles(files: list[UploadFile] = File(...)):
 
 
 @app.get("/simulation", response_class=HTMLResponse)
-async def simulation_page(request: Request):
+async def simulationPage(request: Request):
     """Página que muestra la simulación."""
     return templates.TemplateResponse("simulation.html", {"request": request})
 

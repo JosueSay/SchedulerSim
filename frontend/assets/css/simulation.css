@@ -99,7 +99,7 @@ h1 {
   border-radius: 4px;
 }
 
-.cycle-counter {
+.cycle-counter, .simulation-status {
   font-size: 1.5em;
   color: #2c3e50;
   margin-top: 20px;

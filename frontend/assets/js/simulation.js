@@ -15,6 +15,9 @@ const colorPalette = [
 ];
 const processColors = {};
 
+const cycleCounter = document.getElementById("cycle-counter");
+const simulationStatus = document.getElementById("simulation-status");
+
 /**
  * Obtiene el color asignado a un proceso por su PID,
  * asignando uno nuevo si aún no tiene.
@@ -100,12 +103,14 @@ function renderGanttTable(events) {
  */
 let ws;
 function initializeSimulation() {
+  cycleCounter.textContent = "Ciclo Actual: --";
+  simulationStatus.textContent = "Estado: Esperando configuración";
+
   const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
     algorithm: "FIFO",
   };
   ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation");
 
-  const cycleCounter = document.getElementById("cycle-counter");
   let currentCycle = 0;
   const events = [];
 
@@ -119,7 +124,8 @@ function initializeSimulation() {
 
     if (data.event === "SIMULATION_END") {
       ws.close();
-      cycleCounter.textContent = `Simulación Finalizada. Último Ciclo: ${currentCycle}`;
+      cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
+      simulationStatus.textContent = "Estado: Finalizado";
       return;
     }
 
@@ -130,6 +136,7 @@ function initializeSimulation() {
       events.push(data);
       renderGanttTable(events);
       cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
+      simulationStatus.textContent = "Estado: En proceso";
     }
   };
 
@@ -148,7 +155,8 @@ function initializeSimulation() {
  * cerrando y reiniciando WebSocket
  */
 function resetSimulation() {
-  document.getElementById("cycle-counter").textContent = "Ciclo Actual: 0";
+  cycleCounter.textContent = "Ciclo Actual: --";
+  simulationStatus.textContent = "Estado: Reiniciado";
   const table = document.getElementById("gantt-table");
   Array.from(table.getElementsByTagName("td")).forEach((cell) => {
     cell.style.backgroundColor = "";
