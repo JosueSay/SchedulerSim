@@ -3,9 +3,15 @@
 
 #include "simulator.h"
 
-// Función principal para simular FIFO
+// Función principal para simular FIFO en tiempo real (ciclo por ciclo)
 void simulateFIFO(Process *processes, int processCount,
                   TimelineEvent *events, int *eventCount,
                   SimulationControl *control);
+
+// Nueva función: Exporta un evento en formato JSON en tiempo real
+void exportEventRealtime(TimelineEvent *event);
+
+// Nueva función: Notifica el fin de la simulación en tiempo real
+void exportSimulationEnd();
 
 #endif

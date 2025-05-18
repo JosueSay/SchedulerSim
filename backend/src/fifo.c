@@ -1,9 +1,32 @@
 #include "fifo.h"
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h> // Solo si quieres simular delay con sleep
 
 /**
- * Simulación del algoritmo FIFO (First-In, First-Out)
+ * Exporta un solo evento en formato JSON (para streaming en tiempo real)
+ */
+void exportEventRealtime(TimelineEvent *event)
+{
+  printf("{\"pid\": \"%s\", \"startCycle\": %d, \"endCycle\": %d, \"state\": \"%s\"}\n",
+         event->pid,
+         event->startCycle,
+         event->endCycle,
+         getProcessStateName(event->state));
+  fflush(stdout); // Asegura que el evento se envíe inmediatamente
+}
+
+/**
+ * Exporta un evento de finalización de simulación
+ */
+void exportSimulationEnd()
+{
+  printf("{\"event\": \"SIMULATION_END\"}\n");
+  fflush(stdout);
+}
+
+/**
+ * Simulación del algoritmo FIFO (First-In, First-Out) en tiempo real
  */
 void simulateFIFO(Process *processes, int processCount,
                   TimelineEvent *events, int *eventCount,
@@ -12,7 +35,7 @@ void simulateFIFO(Process *processes, int processCount,
   int currentTime = 0;
   *eventCount = 0;
 
-  // Ordenar procesos por Arrival Time (AT)
+  // Ordenar procesos por tiempo de llegada (Arrival Time)
   for (int i = 0; i < processCount - 1; i++)
   {
     for (int j = i + 1; j < processCount; j++)
@@ -38,15 +61,26 @@ void simulateFIFO(Process *processes, int processCount,
     processes[i].waitingTime = processes[i].startTime - processes[i].arrivalTime;
     processes[i].state = STATE_TERMINATED;
 
-    // Agregar evento a la línea de tiempo
-    snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
-    events[*eventCount].startCycle = processes[i].startTime;
-    events[*eventCount].endCycle = processes[i].finishTime;
-    events[*eventCount].state = STATE_RUNNING;
-    (*eventCount)++;
+    // Generar eventos ciclo por ciclo para animación en tiempo real
+    for (int c = 0; c < processes[i].burstTime; c++)
+    {
+      snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
+      events[*eventCount].startCycle = currentTime;
+      events[*eventCount].endCycle = currentTime + 1;
+      events[*eventCount].state = STATE_RUNNING;
 
-    currentTime = processes[i].finishTime;
+      exportEventRealtime(&events[*eventCount]); // Emitir evento en tiempo real
+
+      (*eventCount)++;
+      currentTime++;
+
+      // Simula delay real si quieres ver la animación en frontend en tiempo real
+      // sleep(1); // Descomenta si deseas simular 1 segundo de espera por ciclo
+    }
   }
+
+  // Emitir fin de simulación para que el frontend pueda manejarlo
+  exportSimulationEnd();
 
   // Actualizar control de simulación
   if (control)

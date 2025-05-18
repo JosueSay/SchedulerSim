@@ -82,89 +82,69 @@ function renderGanttTable(events) {
 }
 
 // ==============================
-// 🎬 Simulación Dinámica
+// 🎬 Simulación en Tiempo Real con WebSockets
 // ==============================
-let isPaused = false;
-let simulationIterator = null;
+let ws;
+function initializeSimulation() {
+  const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
+    algorithm: "FIFO",
+  };
+  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation");
 
-async function* animateGanttChart(events) {
   const cycleCounter = document.getElementById("cycle-counter");
   let currentCycle = 0;
+  const events = [];
 
-  for (const event of events) {
-    for (let cycle = event.startCycle; cycle < event.endCycle; cycle++) {
-      while (isPaused) await new Promise((resolve) => setTimeout(resolve, 100));
-      currentCycle = cycle;
+  ws.onopen = () => {
+    console.log("Conexión WebSocket establecida.");
+    ws.send(JSON.stringify(config));
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.event === "SIMULATION_END") {
+      ws.close();
+      cycleCounter.textContent = `Simulación Finalizada. Último Ciclo: ${currentCycle}`;
+      return;
+    }
+
+    if (data.metrics) {
+      updateMetricsPanel(data.metrics);
+    } else if (data.pid) {
+      currentCycle = data.endCycle;
+      events.push(data);
+      renderGanttTable(events);
       cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
-      highlightGanttCell(event.pid, cycle);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 segundo por ciclo
-      yield;
     }
-  }
-  cycleCounter.textContent = `Ciclo Actual: ${currentCycle + 1}`;
-}
+  };
 
-function highlightGanttCell(pid, cycle) {
-  const table = document.getElementById("gantt-table");
-  const rows = table.getElementsByTagName("tr");
+  ws.onerror = (err) => {
+    console.error("Error en WebSocket:", err);
+    showAlert("Error", "Conexión con la simulación perdida.", "error");
+  };
 
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (row.cells[0].textContent === pid) {
-      const cell = row.cells[cycle + 1];
-      if (cell) {
-        cell.style.backgroundColor = getProcessColor(pid);
-        cell.style.color = "#000";
-      }
-    }
-  }
-}
-
-// ==============================
-// ▶️ Control de Simulación
-// ==============================
-async function initializeSimulation() {
-  const response = await fetch("/simulate/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ algorithm: "FIFO" }),
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    updateMetricsPanel(data.metrics);
-    renderGanttTable(data.timeline);
-
-    const events = data.timeline;
-    simulationIterator = animateGanttChart(events);
-    simulationIterator.next();
-  } else {
-    showAlert("Error", "No se pudo cargar la simulación.", "error");
-  }
+  ws.onclose = () => {
+    console.log("Conexión WebSocket cerrada.");
+  };
 }
 
 function pauseSimulation() {
-  isPaused = true;
+  if (ws) ws.send(JSON.stringify({ command: "pause" }));
 }
 
 function resumeSimulation() {
-  if (simulationIterator) {
-    isPaused = false;
-    simulationIterator.next();
-  }
+  if (ws) ws.send(JSON.stringify({ command: "resume" }));
 }
 
 function resetSimulation() {
-  isPaused = false;
   document.getElementById("cycle-counter").textContent = "Ciclo Actual: 0";
-
   const table = document.getElementById("gantt-table");
   Array.from(table.getElementsByTagName("td")).forEach((cell) => {
     cell.style.backgroundColor = "";
     cell.style.color = "";
   });
-
-  if (simulationIterator) simulationIterator = null;
+  if (ws) ws.close();
   initializeSimulation();
 }
 

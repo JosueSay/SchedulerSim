@@ -53,7 +53,7 @@ function validateSimulationConfig(config) {
   return true;
 }
 
-function startSimulation() {
+async function startSimulation() {
   const config = {
     algorithm: document.getElementById("algorithm").value,
     quantum: document.getElementById("quantum").value || null,
@@ -64,10 +64,7 @@ function startSimulation() {
 
   if (!validateSimulationConfig(config)) return;
 
-  console.log("[DEBUG] Configuración de Simulación:", config);
-  showAlert(
-    "Simulación Configurada",
-    "Configuración completada. (Falta integrar con Backend)",
-    "success"
-  );
+  // Eliminamos la llamada fetch completamente.
+  localStorage.setItem("lastSimulationConfig", JSON.stringify(config));
+  window.location.href = "/simulation";
 }

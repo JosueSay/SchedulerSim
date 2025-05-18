@@ -1,5 +1,5 @@
 #include "simulator.h"
-#include "fifo.h" // Incluir la cabecera de FIFO
+#include "fifo.h"
 #include <stdio.h>
 
 #define MAX_PROCESSES 100
@@ -31,54 +31,22 @@ int main()
            getProcessStateName(processes[i].state));
   }
 
-  printf("\n=== Recursos Cargados (%d) ===\n", resourceCount);
-  for (int i = 0; i < resourceCount; i++)
-  {
-    printf("Resource: %s, Counter: %d, Locked: %d\n",
-           resources[i].name,
-           resources[i].counter,
-           resources[i].isLocked);
-  }
+  printf("\n=== Ejecutando Simulación FIFO en Tiempo Real ===\n");
 
-  printf("\n=== Acciones Cargadas (%d) ===\n", actionCount);
-  for (int i = 0; i < actionCount; i++)
-  {
-    printf("PID: %s, Action: %s, Resource: %s, Cycle: %d\n",
-           actions[i].pid,
-           getActionTypeName(actions[i].action),
-           actions[i].resourceName,
-           actions[i].cycle);
-  }
-
-  // Simulación de eventos de timeline (provisional)
-  for (int i = 0; i < processCount; i++)
-  {
-    timelineEvents[eventCount].startCycle = processes[i].arrivalTime;
-    timelineEvents[eventCount].endCycle = processes[i].arrivalTime + processes[i].burstTime;
-    snprintf(timelineEvents[eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
-    timelineEvents[eventCount].state = STATE_RUNNING;
-    eventCount++;
-  }
-
-  SimulationMetrics metrics = calculateMetrics(processes, processCount);
-
-  exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
-  exportMetrics("../data/output/metrics.txt", metrics);
-
-  printf("\n=== Ejecutando Simulación FIFO ===\n");
-
-  // Ejecutar FIFO real
-  eventCount = 0; // Resetear contador de eventos antes de la simulación real
+  eventCount = 0;
   simulateFIFO(processes, processCount, timelineEvents, &eventCount, &control);
 
-  // Calcular métricas basadas en la simulación real
-  metrics = calculateMetrics(processes, processCount);
-
-  // Exportar resultados reales
+  // Calcular métricas finales
+  SimulationMetrics metrics = calculateMetrics(processes, processCount);
   exportMetrics("../data/output/metrics.txt", metrics);
-  exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
 
-  printf("Métricas y Timeline exportados a ../data/output/\n");
+  // Notificar fin de simulación (para WebSocket o frontend)
+  exportSimulationEnd();
 
+  // Enviar métricas finales en JSON con tipo para distinguir en frontend
+  printf("{\"type\": \"metrics\", \"data\": {\"Average Waiting Time\": %.2f, \"Average Turnaround Time\": %.2f, \"Average Response Time\": %.2f}}\n",
+         metrics.avgWaitingTime, metrics.avgTurnaroundTime, metrics.avgResponseTime);
+
+  fflush(stdout); // Asegurar salida inmediata
   return 0;
 }
