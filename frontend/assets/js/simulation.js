@@ -1,6 +1,6 @@
-// ==============================
-// 🎨 Configuración de Colores
-// ==============================
+/**
+ * Configuración de Colores
+ */
 const colorPalette = [
   "#e63946",
   "#a8dadc",
@@ -15,6 +15,12 @@ const colorPalette = [
 ];
 const processColors = {};
 
+/**
+ * Obtiene el color asignado a un proceso por su PID,
+ * asignando uno nuevo si aún no tiene.
+ * @param {string} pid - Identificador del proceso
+ * @returns {string} Color hexadecimal asignado
+ */
 function getProcessColor(pid) {
   if (!processColors[pid]) {
     const index = Object.keys(processColors).length % colorPalette.length;
@@ -23,9 +29,10 @@ function getProcessColor(pid) {
   return processColors[pid];
 }
 
-// ==============================
-// 📊 Actualización de Métricas
-// ==============================
+/**
+ * Actualiza el panel de métricas con datos recibidos
+ * @param {Object} metrics - Métricas de la simulación
+ */
 function updateMetricsPanel(metrics) {
   document.getElementById("metrics-panel").innerHTML = `
     <div id="metricas" class="card">
@@ -42,28 +49,35 @@ function updateMetricsPanel(metrics) {
   `;
 }
 
-// ==============================
-// 📅 Renderizado del Gantt (Tabla)
-// ==============================
+/**
+ * Renderiza la tabla Gantt con eventos de procesos
+ * @param {Array} events - Array de eventos con { pid, startCycle, endCycle }
+ */
 function renderGanttTable(events) {
   const table = document.getElementById("gantt-table");
   const legend = document.getElementById("gantt-legend");
+
+  // Limpia tabla y leyenda
   table.innerHTML = "";
   legend.innerHTML = "";
 
+  // Obtiene lista única de PIDs y ciclo máximo
   const pids = [...new Set(events.map((e) => e.pid))];
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
+  // Construye leyenda con colores asignados a cada proceso
   pids.forEach((pid) => {
     const color = getProcessColor(pid);
     legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background:${color}"></div>${pid}</div>`;
   });
 
+  // Construye fila de encabezado con números de ciclo
   let headerRow = "<tr><th>Proceso</th>";
   for (let c = 0; c <= maxCycle; c++) headerRow += `<th>${c}</th>`;
   headerRow += "</tr>";
   table.innerHTML += headerRow;
 
+  // Construye filas por proceso, coloreando celdas según eventos
   pids.forEach((pid) => {
     let row = `<tr><td>${pid}</td>`;
     for (let c = 0; c <= maxCycle; c++) {
@@ -81,9 +95,9 @@ function renderGanttTable(events) {
   });
 }
 
-// ==============================
-// 🎬 Simulación en Tiempo Real con WebSockets
-// ==============================
+/**
+ * Inicializa la simulación y gestiona WebSocket
+ */
 let ws;
 function initializeSimulation() {
   const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
@@ -129,14 +143,24 @@ function initializeSimulation() {
   };
 }
 
+/**
+ * Pausa la simulación enviando comando por WebSocket
+ */
 function pauseSimulation() {
   if (ws) ws.send(JSON.stringify({ command: "pause" }));
 }
 
+/**
+ * Reanuda la simulación enviando comando por WebSocket
+ */
 function resumeSimulation() {
   if (ws) ws.send(JSON.stringify({ command: "resume" }));
 }
 
+/**
+ * Reinicia la simulación limpiando tabla y ciclo,
+ * cerrando y reiniciando WebSocket
+ */
 function resetSimulation() {
   document.getElementById("cycle-counter").textContent = "Ciclo Actual: 0";
   const table = document.getElementById("gantt-table");
@@ -148,9 +172,9 @@ function resetSimulation() {
   initializeSimulation();
 }
 
-// ==============================
-// 🚀 Navegación
-// ==============================
+/**
+ * Navegación entre vistas
+ */
 function restartSimulation() {
   denyAccess();
   window.location.href = "/config";

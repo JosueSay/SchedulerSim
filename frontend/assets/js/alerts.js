@@ -1,4 +1,3 @@
-// Cargar SweetAlert2 CDN
 if (!window.Swal) {
   const script = document.createElement("script");
   script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";

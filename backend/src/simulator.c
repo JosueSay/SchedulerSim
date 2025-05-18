@@ -2,10 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-/**
- * Control de Simulación
+/*
+ * Inicia la simulación.
+ * @param control: Puntero al controlador de simulación.
  */
-
 void startSimulation(SimulationControl *control)
 {
   if (control == NULL)
@@ -14,6 +14,10 @@ void startSimulation(SimulationControl *control)
   control->currentCycle = 0;
 }
 
+/*
+ * Pausa la simulación si se está ejecutando.
+ * @param control: Puntero al controlador de simulación.
+ */
 void pauseSimulation(SimulationControl *control)
 {
   if (control == NULL)
@@ -24,6 +28,10 @@ void pauseSimulation(SimulationControl *control)
   }
 }
 
+/*
+ * Reanuda la simulación si está en pausa.
+ * @param control: Puntero al controlador de simulación.
+ */
 void resumeSimulation(SimulationControl *control)
 {
   if (control == NULL)
@@ -34,6 +42,10 @@ void resumeSimulation(SimulationControl *control)
   }
 }
 
+/*
+ * Reinicia la simulación a su estado inicial.
+ * @param control: Puntero al controlador de simulación.
+ */
 void resetSimulation(SimulationControl *control)
 {
   if (control == NULL)
@@ -48,9 +60,11 @@ void resetSimulation(SimulationControl *control)
 }
 
 /**
- * Conversión de enums a cadenas
+ * Devuelve el nombre en cadena del estado de un proceso dado su enum.
+ *
+ * @param state Estado del proceso (ProcessState).
+ * @return Cadena con el nombre del estado, o "UNKNOWN" si no es válido.
  */
-
 const char *getProcessStateName(ProcessState state)
 {
   switch (state)
@@ -70,6 +84,12 @@ const char *getProcessStateName(ProcessState state)
   }
 }
 
+/**
+ * Devuelve el nombre en cadena del tipo de acción dado su enum.
+ *
+ * @param action Tipo de acción (ActionType).
+ * @return Cadena con el nombre de la acción, o "UNKNOWN" si no es válido.
+ */
 const char *getActionTypeName(ActionType action)
 {
   switch (action)
@@ -85,6 +105,12 @@ const char *getActionTypeName(ActionType action)
   }
 }
 
+/**
+ * Devuelve el nombre en cadena del algoritmo de planificación dado su enum.
+ *
+ * @param algorithm Algoritmo de planificación (SchedulingAlgorithm).
+ * @return Cadena con el nombre del algoritmo, o "UNKNOWN" si no es válido.
+ */
 const char *getAlgorithmName(SchedulingAlgorithm algorithm)
 {
   switch (algorithm)
@@ -106,8 +132,12 @@ const char *getAlgorithmName(SchedulingAlgorithm algorithm)
   }
 }
 
-/**
- * Carga de Procesos desde archivo
+/*
+ * Carga los procesos desde un archivo de texto.
+ * @param filename: Nombre del archivo que contiene los procesos.
+ * @param processes: Arreglo de estructuras de procesos.
+ * @param maxProcesses: Número máximo de procesos a cargar.
+ * @return Número de procesos cargados o -1 en caso de error.
  */
 int loadProcesses(const char *filename, Process *processes, int maxProcesses)
 {
@@ -120,17 +150,14 @@ int loadProcesses(const char *filename, Process *processes, int maxProcesses)
 
   while (count < maxProcesses && fgets(line, sizeof(line), file))
   {
-    // Eliminar salto de línea
     line[strcspn(line, "\n")] = '\0';
 
-    // Leer respetando los delimitadores con coma y espacios
     if (sscanf(line, " %[^,], %d, %d, %d",
                processes[count].pid,
                &processes[count].burstTime,
                &processes[count].arrivalTime,
                &processes[count].priority) == 4)
     {
-
       processes[count].state = STATE_NEW;
       processes[count].startTime = -1;
       processes[count].finishTime = -1;
@@ -143,8 +170,12 @@ int loadProcesses(const char *filename, Process *processes, int maxProcesses)
   return count;
 }
 
-/**
- * Carga de Recursos desde archivo
+/*
+ * Carga los recursos desde un archivo de texto.
+ * @param filename: Nombre del archivo que contiene los recursos.
+ * @param resources: Arreglo de estructuras de recursos.
+ * @param maxResources: Número máximo de recursos a cargar.
+ * @return Número de recursos cargados o -1 en caso de error.
  */
 int loadResources(const char *filename, Resource *resources, int maxResources)
 {
@@ -157,10 +188,8 @@ int loadResources(const char *filename, Resource *resources, int maxResources)
 
   while (count < maxResources && fgets(line, sizeof(line), file))
   {
-    // Eliminar salto de línea
     line[strcspn(line, "\n")] = '\0';
 
-    // Formato esperado: RESOURCE_NAME, COUNTER
     if (sscanf(line, " %[^,], %d",
                resources[count].name,
                &resources[count].counter) == 2)
@@ -175,7 +204,14 @@ int loadResources(const char *filename, Resource *resources, int maxResources)
 }
 
 /**
- * Carga de Acciones desde archivo
+ * Carga las acciones desde un archivo de texto.
+ * Cada línea debe tener el formato: PID, ACTION, RESOURCE, CYCLE
+ * Donde ACTION puede ser "READ" o "WRITE".
+ *
+ * @param filename Nombre del archivo de texto con las acciones.
+ * @param actions Arreglo donde se almacenarán las acciones cargadas.
+ * @param maxActions Número máximo de acciones a cargar.
+ * @return Número de acciones cargadas correctamente, o -1 si hubo un error al abrir el archivo.
  */
 int loadActions(const char *filename, Action *actions, int maxActions)
 {
@@ -220,6 +256,14 @@ int loadActions(const char *filename, Action *actions, int maxActions)
   return count;
 }
 
+/**
+ * Calcula las métricas promedio de la simulación a partir de los procesos dados.
+ * Métricas calculadas: tiempo promedio de espera, tiempo promedio de respuesta y tiempo promedio de turnaround.
+ *
+ * @param processes Arreglo de procesos con sus tiempos registrados.
+ * @param processCount Número total de procesos en el arreglo.
+ * @return Estructura SimulationMetrics con los valores promedio calculados.
+ */
 SimulationMetrics calculateMetrics(Process *processes, int processCount)
 {
   SimulationMetrics metrics = {0.0f, 0.0f, 0.0f};
@@ -247,6 +291,14 @@ SimulationMetrics calculateMetrics(Process *processes, int processCount)
   return metrics;
 }
 
+/**
+ * Exporta los eventos de la línea de tiempo de la simulación a un archivo de texto.
+ * Cada evento se escribe con formato: PID, startCycle, endCycle, estado.
+ *
+ * @param filename Nombre del archivo donde se guardarán los eventos.
+ * @param events Arreglo de eventos a exportar.
+ * @param eventCount Número de eventos en el arreglo.
+ */
 void exportTimelineEvents(const char *filename, TimelineEvent *events, int eventCount)
 {
   FILE *file = fopen(filename, "w");
@@ -265,6 +317,13 @@ void exportTimelineEvents(const char *filename, TimelineEvent *events, int event
   fclose(file);
 }
 
+/**
+ * Exporta las métricas de simulación a un archivo de texto.
+ * Se escriben las métricas promedio de espera, turnaround y respuesta.
+ *
+ * @param filename Nombre del archivo donde se guardarán las métricas.
+ * @param metrics Estructura con las métricas a exportar.
+ */
 void exportMetrics(const char *filename, SimulationMetrics metrics)
 {
   FILE *file = fopen(filename, "w");

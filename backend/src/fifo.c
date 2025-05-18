@@ -1,10 +1,20 @@
 #include "fifo.h"
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h> // Solo si quieres simular delay con sleep
+#include <unistd.h> // Para usleep
+
+/*
+ * Configuración de Simulación
+ */
+#define SIMULATION_DELAY_US 1000000
 
 /**
- * Exporta un solo evento en formato JSON (para streaming en tiempo real)
+ * Imprime en formato JSON la información de un evento de línea de tiempo en tiempo real.
+ *
+ * @param event Puntero al evento (TimelineEvent) a exportar.
+ *              Incluye PID, ciclo inicial, ciclo final y estado del proceso.
+ *
+ * Esta función imprime el evento y fuerza la salida inmediata (fflush).
  */
 void exportEventRealtime(TimelineEvent *event)
 {
@@ -13,11 +23,14 @@ void exportEventRealtime(TimelineEvent *event)
          event->startCycle,
          event->endCycle,
          getProcessStateName(event->state));
-  fflush(stdout); // Asegura que el evento se envíe inmediatamente
+  fflush(stdout); // Asegura envío inmediato
 }
 
 /**
- * Exporta un evento de finalización de simulación
+ * Imprime un mensaje JSON indicando que la simulación ha finalizado.
+ *
+ * No recibe parámetros.
+ * La salida se fuerza inmediatamente con fflush.
  */
 void exportSimulationEnd()
 {
@@ -26,7 +39,17 @@ void exportSimulationEnd()
 }
 
 /**
- * Simulación del algoritmo FIFO (First-In, First-Out) en tiempo real
+ * Simula la planificación FIFO (First In, First Out) en tiempo real para un conjunto de procesos.
+ *
+ * @param processes    Arreglo de procesos a simular.
+ * @param processCount Número de procesos en el arreglo.
+ * @param events       Arreglo para registrar eventos de ejecución (TimelineEvent).
+ * @param eventCount   Puntero a entero donde se actualizará el conteo de eventos generados.
+ * @param control      Puntero a estructura de control de simulación para actualizar estado y ciclos (puede ser NULL).
+ *
+ * Esta función ordena los procesos por tiempo de llegada, simula su ejecución uno a uno,
+ * registra eventos ciclo a ciclo con retardo para simular tiempo real (usleep),
+ * exporta eventos en formato JSON y al final actualiza el control de simulación.
  */
 void simulateFIFO(Process *processes, int processCount,
                   TimelineEvent *events, int *eventCount,
@@ -61,7 +84,7 @@ void simulateFIFO(Process *processes, int processCount,
     processes[i].waitingTime = processes[i].startTime - processes[i].arrivalTime;
     processes[i].state = STATE_TERMINATED;
 
-    // Generar eventos ciclo por ciclo para animación en tiempo real
+    // Simulación ciclo por ciclo
     for (int c = 0; c < processes[i].burstTime; c++)
     {
       snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
@@ -69,20 +92,18 @@ void simulateFIFO(Process *processes, int processCount,
       events[*eventCount].endCycle = currentTime + 1;
       events[*eventCount].state = STATE_RUNNING;
 
-      exportEventRealtime(&events[*eventCount]); // Emitir evento en tiempo real
+      exportEventRealtime(&events[*eventCount]);
 
       (*eventCount)++;
       currentTime++;
 
-      // Simula delay real si quieres ver la animación en frontend en tiempo real
-      // sleep(1); // Descomenta si deseas simular 1 segundo de espera por ciclo
+      // Retardo para simular animación
+      usleep(SIMULATION_DELAY_US);
     }
   }
 
-  // Emitir fin de simulación para que el frontend pueda manejarlo
   exportSimulationEnd();
 
-  // Actualizar control de simulación
   if (control)
   {
     control->currentCycle = currentTime;

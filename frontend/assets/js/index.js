@@ -1,3 +1,7 @@
+/**
+ * Inicializa la página principal eliminando accesos previos
+ * y cargando la vista previa de los archivos 'procesos.txt', 'recursos.txt' y 'acciones.txt'.
+ */
 function initializeIndex() {
   console.log("[DEBUG] Entrando a '/', eliminando acceso previo.");
   denyAccess();
@@ -7,6 +11,14 @@ function initializeIndex() {
   );
 }
 
+/**
+ * Valida el contenido de un archivo de texto según su tipo.
+ * Usa expresiones regulares específicas para cada tipo de archivo.
+ *
+ * @param {string} type - Tipo de archivo: 'procesos', 'recursos' o 'acciones'.
+ * @param {string} content - Contenido del archivo a validar.
+ * @returns {boolean} - True si el contenido es válido, false si hay errores.
+ */
 function validateTxtContent(type, content) {
   const lines = content.trim().split("\n");
   const regexPatterns = {
@@ -33,6 +45,13 @@ function validateTxtContent(type, content) {
   return true;
 }
 
+/**
+ * Valida y lee un archivo de texto.
+ *
+ * @param {File} file - Archivo a validar y leer.
+ * @param {string} type - Tipo del archivo ('procesos', 'recursos', 'acciones').
+ * @returns {Promise<boolean>} - Promesa que resuelve true si el contenido es válido, false si no.
+ */
 async function validateAndReadFile(file, type) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -45,6 +64,12 @@ async function validateAndReadFile(file, type) {
   });
 }
 
+/**
+ * Valida que los archivos requeridos estén completos,
+ * que tengan los nombres y extensiones correctas,
+ * valida su contenido y luego los sube al servidor.
+ * En caso de éxito, permite el acceso y redirige a '/config'.
+ */
 async function uploadAll() {
   const files = {
     procesos: document.getElementById("procesos").files[0],
@@ -114,6 +139,13 @@ async function uploadAll() {
   }
 }
 
+/**
+ * Carga la vista previa de un archivo específico desde el servidor
+ * y la muestra en el elemento con id "preview-{type}".
+ *
+ * @param {string} type - Tipo del archivo ('procesos', 'recursos', 'acciones').
+ * @param {string} filename - Nombre del archivo (ej. "procesos.txt").
+ */
 async function loadFilePreview(type, filename) {
   const response = await fetch("/listFiles/");
   const files = await response.json();
