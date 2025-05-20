@@ -3,6 +3,22 @@
 #include <string.h>
 #include <unistd.h>
 
+/**
+ * Simula la planificación Round Robin (RR) en tiempo real para un conjunto de procesos.
+ *
+ * @param processes    Arreglo de procesos a simular.
+ * @param processCount Número de procesos en el arreglo.
+ * @param events       Arreglo para registrar eventos de ejecución (TimelineEvent).
+ * @param eventCount   Puntero a entero donde se actualizará el conteo de eventos generados.
+ * @param control      Puntero a estructura de control de simulación con parámetros como el quantum.
+ *
+ * Esta función simula la ejecución de procesos en un esquema Round Robin,
+ * considerando el tiempo de llegada y un quantum fijo. Los procesos se encolan
+ * conforme van llegando y se les asigna CPU por turnos de longitud máxima igual al quantum.
+ *
+ * Durante la ejecución, se registran eventos ciclo a ciclo para su visualización en tiempo real.
+ * Se exportan los eventos y métricas individuales de cada proceso, y se finaliza con una marca de fin de simulación.
+ */
 void simulateRR(Process *processes, int processCount,
                 TimelineEvent *events, int *eventCount,
                 SimulationControl *control)

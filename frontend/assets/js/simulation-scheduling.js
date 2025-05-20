@@ -162,6 +162,17 @@ function initializeSimulation() {
     } else {
       quantumContainer.style.display = "none";
     }
+
+    // Mostrar info de preemptivo si aplica
+    const preemptiveContainer = document.getElementById("preemptive-info");
+    if (config.algorithm === "PS") {
+      const label =
+        config.isPreemptive === "1" || config.isPreemptive === 1 ? "Sí" : "No";
+      preemptiveContainer.textContent = `Preemptivo: ${label}`;
+      preemptiveContainer.style.display = "block";
+    } else {
+      preemptiveContainer.style.display = "none";
+    }
   };
 
   ws.onmessage = (event) => {

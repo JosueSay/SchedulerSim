@@ -2,6 +2,7 @@
 #include "fifo.h"
 #include "sjf.h"
 #include "rr.h"
+#include "ps.h"
 #include <stdio.h>
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -55,10 +56,10 @@ void readConfigFromStdin(SimulationControl *control)
     else
       control->config.isPreemptive = 0;
 
-    printf("Algoritmo: %s | Quantum: %d | Preemptivo: %d\n",
+    printf("Algoritmo: %s | Quantum: %d | Preemptivo: %s\n",
            alg && alg->valuestring ? alg->valuestring : "(none)",
            control->config.quantum,
-           control->config.isPreemptive);
+           control->config.isPreemptive ? "Sí" : "No");
 
     cJSON_Delete(json);
   }
@@ -78,13 +79,10 @@ int main()
   SimulationControl control;
   int eventCount = 0;
 
-  // Leer configuración enviada desde el frontend (stdin)
   readConfigFromStdin(&control);
 
-  // Cargar archivos de entrada
   int processCount = loadProcesses("../data/input/procesos.txt", processes, MAX_PROCESSES);
 
-  // Depuración: mostrar datos cargados
   printf("=== Procesos Cargados (%d) ===\n", processCount);
   for (int i = 0; i < processCount; i++)
   {
@@ -98,7 +96,6 @@ int main()
 
   printf("\n=== Ejecutando Algoritmo: %s ===\n", getAlgorithmName(control.config.algorithm));
 
-  // Ejecutar el algoritmo seleccionado
   switch (control.config.algorithm)
   {
   case ALGO_FIFO:
@@ -110,16 +107,17 @@ int main()
   case ALGO_RR:
     simulateRR(processes, processCount, timelineEvents, &eventCount, &control);
     break;
+  case ALGO_PRIORITY:
+    simulatePS(processes, processCount, timelineEvents, &eventCount, &control);
+    break;
   default:
     printf("Algoritmo no soportado.\n");
     return 1;
   }
 
-  // Calcular y exportar métricas
   SimulationMetrics metrics = calculateMetrics(processes, processCount);
   exportMetrics("../data/output/metrics.txt", metrics);
 
-  // Notificar fin de simulación y enviar métrica promedio final
   exportSimulationEnd();
   printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
   fflush(stdout);
