@@ -153,6 +153,15 @@ function initializeSimulation() {
     document.getElementById(
       "algorithm-used"
     ).textContent = `Algoritmo: ${config.algorithm}`;
+
+    // mostrar quantum si aplica
+    const quantumContainer = document.getElementById("quantum-info");
+    if (config.algorithm === "RR" && config.quantum) {
+      quantumContainer.textContent = `Quantum: ${config.quantum}`;
+      quantumContainer.style.display = "block";
+    } else {
+      quantumContainer.style.display = "none";
+    }
   };
 
   ws.onmessage = (event) => {
