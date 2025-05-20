@@ -87,7 +87,7 @@ h2 {
   border-radius: 4px;
 }
 
-.cycle-counter, .simulation-status {
+.cycle-counter, .simulation-status, .algorithm-used {
   font-size: 1.5em;
   color: #2c3e50;
   margin-top: 20px;
@@ -95,7 +95,7 @@ h2 {
   padding-bottom: 1rem;
 }
 
-.simulation-status {
+.algorithm-used {
   margin-bottom: 20px;
 }
 

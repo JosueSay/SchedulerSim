@@ -136,6 +136,7 @@ let ws;
 function initializeSimulation() {
   cycleCounter.textContent = "Ciclo Actual: --";
   simulationStatus.textContent = "Estado: Esperando configuración";
+  document.getElementById("algorithm-used").textContent = "Algoritmo: --";
   processMetrics.length = 0;
   events.length = 0;
 
@@ -148,6 +149,9 @@ function initializeSimulation() {
   ws.onopen = () => {
     console.log("Conexión WebSocket establecida.");
     ws.send(JSON.stringify(config));
+    document.getElementById(
+      "algorithm-used"
+    ).textContent = `Algoritmo: ${config.algorithm}`;
   };
 
   ws.onmessage = (event) => {
