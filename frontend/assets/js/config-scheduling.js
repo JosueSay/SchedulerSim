@@ -45,7 +45,7 @@ function validateSimulationConfig(config) {
     }
   }
 
-  if (config.algorithm !== "PS" && config.isPreemptive !== "0") {
+  if (config.algorithm !== "PS" && Number(config.isPreemptive) !== 0) {
     showAlert(
       "Configuración Incorrecta",
       "El modo preventivo solo aplica para Priority Scheduling.",
