@@ -115,8 +115,6 @@ typedef struct
 typedef struct
 {
   float avgWaitingTime;
-  float avgTurnaroundTime;
-  float avgResponseTime;
 } SimulationMetrics;
 
 /**
@@ -129,6 +127,7 @@ SimulationMetrics calculateMetrics(Process *processes, int processCount);
 // Exportación de resultados
 void exportTimelineEvents(const char *filename, TimelineEvent *events, int eventCount);
 void exportMetrics(const char *filename, SimulationMetrics metrics);
+void exportProcessMetric(const Process *p);
 
 /**
  * Funciones para carga y manejo de datos

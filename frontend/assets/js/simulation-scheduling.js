@@ -1,92 +1,78 @@
-/**
- * Configuración de Colores
- */
-const colorPalette = [
-  "#e63946",
-  "#a8dadc",
-  "#457b9d",
-  "#1d3557",
-  "#ffb703",
-  "#fb8500",
-  "#8ecae6",
-  "#219ebc",
-  "#023047",
-  "#f1faee",
-];
-const processColors = {};
-
 const cycleCounter = document.getElementById("cycle-counter");
 const simulationStatus = document.getElementById("simulation-status");
 
+const processColors = {};
+let colorIndex = 0;
+let currentCycle = 0;
+const events = [];
+const processMetrics = [];
+
 /**
- * Obtiene el color asignado a un proceso por su PID,
- * asignando uno nuevo si aún no tiene.
- * @param {string} pid - Identificador del proceso
- * @returns {string} Color hexadecimal asignado
+ * Genera un color distintivo basado en hue espaciado.
+ * @param {number} index - índice único para espaciado
+ * @returns {string} color en formato hsl
+ */
+function generateUniqueColor(index) {
+  const hue = (index * 137.508) % 360;
+  const saturation = 65;
+  const lightness = 55;
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+/**
+ * Retorna o asigna un color único a un proceso por su PID
  */
 function getProcessColor(pid) {
   if (!processColors[pid]) {
-    const index = Object.keys(processColors).length % colorPalette.length;
-    processColors[pid] = colorPalette[index];
+    processColors[pid] = generateUniqueColor(colorIndex++);
   }
   return processColors[pid];
 }
 
 /**
- * Actualiza el panel de métricas con datos recibidos
- * @param {Object} metrics - Métricas de la simulación
- */
-function updateMetricsPanel(metrics) {
-  document.getElementById("metrics-panel").innerHTML = `
-    <div id="metricas" class="card">
-      <div class="metric-box">🕒 Tiempo de Espera Promedio: <span>${metrics[
-        "Average Waiting Time"
-      ].toFixed(2)}</span></div>
-      <div class="metric-box">🔁 Tiempo de Retorno Promedio: <span>${metrics[
-        "Average Turnaround Time"
-      ].toFixed(2)}</span></div>
-      <div class="metric-box">⏱️ Tiempo de Respuesta Promedio: <span>${metrics[
-        "Average Response Time"
-      ].toFixed(2)}</span></div>
-    </div>
-  `;
-}
-
-/**
- * Renderiza la tabla Gantt con eventos de procesos
- * @param {Array} events - Array de eventos con { pid, startCycle, endCycle }
+ * Renderiza la tabla Gantt con eventos de procesos.
+ * Cada fila representa un proceso y cada columna un ciclo de tiempo.
+ * Las celdas se colorean según el proceso que está activo en ese ciclo.
+ * Además, se genera una leyenda con los colores asignados a cada proceso.
+ *
+ * @param {Array} events - Array de eventos con objetos que contienen:
+ *   pid: identificador del proceso,
+ *   startCycle: ciclo donde inicia el evento,
+ *   endCycle: ciclo donde termina el evento.
  */
 function renderGanttTable(events) {
+  // Obtiene la referencia a la tabla y a la leyenda en el DOM
   const table = document.getElementById("gantt-table");
   const legend = document.getElementById("gantt-legend");
 
-  // Limpia tabla y leyenda
+  // Limpia cualquier contenido previo en la tabla y la leyenda
   table.innerHTML = "";
   legend.innerHTML = "";
 
-  // Obtiene lista única de PIDs y ciclo máximo
   const pids = [...new Set(events.map((e) => e.pid))];
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
-  // Construye leyenda con colores asignados a cada proceso
+  // Construye la leyenda mostrando el color asignado a cada proceso
   pids.forEach((pid) => {
     const color = getProcessColor(pid);
     legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background:${color}"></div>${pid}</div>`;
   });
 
-  // Construye fila de encabezado con números de ciclo
-  let headerRow = "<tr><th>Proceso</th>";
+  // Construye la fila de encabezado con el título y números de ciclo
+  let headerRow = "<tr><th>Proceso/Ciclo</th>";
   for (let c = 0; c <= maxCycle; c++) headerRow += `<th>${c}</th>`;
   headerRow += "</tr>";
   table.innerHTML += headerRow;
 
-  // Construye filas por proceso, coloreando celdas según eventos
+  // Construye cada fila para cada proceso
   pids.forEach((pid) => {
     let row = `<tr><td>${pid}</td>`;
     for (let c = 0; c <= maxCycle; c++) {
       const event = events.find(
         (e) => e.pid === pid && c >= e.startCycle && c < e.endCycle
       );
+      // Si existe evento, colorea la celda con el color del proceso y muestra su pid
+      // Si no, deja la celda vacía
       row += event
         ? `<td style="background:${getProcessColor(
             pid
@@ -98,6 +84,51 @@ function renderGanttTable(events) {
   });
 }
 
+function renderMetricsTable() {
+  if (processMetrics.length === 0) return;
+
+  const table = document.getElementById("metrics-table");
+  const average = document.getElementById("metrics-average");
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th>AT</th>
+        <th>BT</th>
+        <th>Priority</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Waiting</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${processMetrics
+        .map(
+          (p) => `
+        <tr>
+          <td>${p.pid}</td>
+          <td>${p.arrivalTime}</td>
+          <td>${p.burstTime}</td>
+          <td>${p.priority}</td>
+          <td>${p.startTime}</td>
+          <td>${p.endTime}</td>
+          <td>${p.waitingTime}</td>
+        </tr>
+      `
+        )
+        .join("")}
+    </tbody>
+  `;
+
+  const avgWaiting = (
+    processMetrics.reduce((sum, p) => sum + p.waitingTime, 0) /
+    processMetrics.length
+  ).toFixed(2);
+
+  average.textContent = `Average Waiting Time: ${avgWaiting} ciclos`;
+}
+
 /**
  * Inicializa la simulación y gestiona WebSocket
  */
@@ -105,14 +136,14 @@ let ws;
 function initializeSimulation() {
   cycleCounter.textContent = "Ciclo Actual: --";
   simulationStatus.textContent = "Estado: Esperando configuración";
+  processMetrics.length = 0;
+  events.length = 0;
 
   const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
     algorithm: "FIFO",
   };
-  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation-scheduling");
 
-  let currentCycle = 0;
-  const events = [];
+  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation-scheduling");
 
   ws.onopen = () => {
     console.log("Conexión WebSocket establecida.");
@@ -126,11 +157,12 @@ function initializeSimulation() {
       ws.close();
       cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
       simulationStatus.textContent = "Estado: Finalizado";
+      renderMetricsTable();
       return;
     }
 
-    if (data.metrics) {
-      updateMetricsPanel(data.metrics);
+    if (data.event === "PROCESS_METRIC") {
+      processMetrics.push(data);
     } else if (data.pid) {
       currentCycle = data.endCycle;
       events.push(data);
@@ -157,11 +189,11 @@ function initializeSimulation() {
 function resetSimulation() {
   cycleCounter.textContent = "Ciclo Actual: --";
   simulationStatus.textContent = "Estado: Reiniciado";
-  const table = document.getElementById("gantt-table");
-  Array.from(table.getElementsByTagName("td")).forEach((cell) => {
-    cell.style.backgroundColor = "";
-    cell.style.color = "";
-  });
+
+  document.getElementById("gantt-table").innerHTML = "";
+  document.getElementById("gantt-legend").innerHTML = "";
+  document.getElementById("metrics-panel").innerHTML = "";
+
   if (ws) ws.close();
   initializeSimulation();
 }

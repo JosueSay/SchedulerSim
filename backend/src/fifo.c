@@ -1,12 +1,12 @@
 #include "fifo.h"
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h> // Para usleep
+#include <unistd.h>
 
 /*
  * Configuración de Simulación
  */
-#define SIMULATION_DELAY_US 1000000
+#define SIMULATION_DELAY_US 100000
 
 /**
  * Imprime en formato JSON la información de un evento de línea de tiempo en tiempo real.
@@ -23,7 +23,7 @@ void exportEventRealtime(TimelineEvent *event)
          event->startCycle,
          event->endCycle,
          getProcessStateName(event->state));
-  fflush(stdout); // Asegura envío inmediato
+  fflush(stdout);
 }
 
 /**
@@ -58,7 +58,7 @@ void simulateFIFO(Process *processes, int processCount,
   int currentTime = 0;
   *eventCount = 0;
 
-  // Ordenar procesos por tiempo de llegada (Arrival Time)
+  // Ordenar por tiempo de llegada (Arrival Time)
   for (int i = 0; i < processCount - 1; i++)
   {
     for (int j = i + 1; j < processCount; j++)
@@ -72,6 +72,7 @@ void simulateFIFO(Process *processes, int processCount,
     }
   }
 
+  // Ejecutar procesos en orden FIFO
   for (int i = 0; i < processCount; i++)
   {
     if (currentTime < processes[i].arrivalTime)
@@ -84,7 +85,7 @@ void simulateFIFO(Process *processes, int processCount,
     processes[i].waitingTime = processes[i].startTime - processes[i].arrivalTime;
     processes[i].state = STATE_TERMINATED;
 
-    // Simulación ciclo por ciclo
+    // Simular ciclo por ciclo
     for (int c = 0; c < processes[i].burstTime; c++)
     {
       snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[i].pid);
@@ -97,9 +98,11 @@ void simulateFIFO(Process *processes, int processCount,
       (*eventCount)++;
       currentTime++;
 
-      // Retardo para simular animación
-      usleep(SIMULATION_DELAY_US);
+      usleep(SIMULATION_DELAY_US); // delay para frontend
     }
+
+    // Enviar métrica individual del proceso
+    exportProcessMetric(&processes[i]);
   }
 
   exportSimulationEnd();

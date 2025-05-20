@@ -103,7 +103,7 @@ async def websocketSimulationScheduling(websocket: WebSocket):
         config = json.loads(configData)
 
         process = await asyncio.create_subprocess_exec(
-            "../backend/bin/simulator",
+            "../backend/bin/scheduling-simulator",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )

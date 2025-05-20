@@ -90,7 +90,6 @@ int loadProcesses(const char *filename, Process *processes, int maxProcesses)
   while (count < maxProcesses && fgets(line, sizeof(line), file))
   {
     line[strcspn(line, "\n")] = '\0';
-
     if (sscanf(line, " %[^,], %d, %d, %d",
                processes[count].pid,
                &processes[count].burstTime,
@@ -128,7 +127,6 @@ int loadResources(const char *filename, Resource *resources, int maxResources)
   while (count < maxResources && fgets(line, sizeof(line), file))
   {
     line[strcspn(line, "\n")] = '\0';
-
     if (sscanf(line, " %[^,], %d",
                resources[count].name,
                &resources[count].counter) == 2)
@@ -164,17 +162,13 @@ int loadActions(const char *filename, Action *actions, int maxActions)
 
   while (count < maxActions && fgets(line, sizeof(line), file))
   {
-    // Limpiar saltos de línea
     line[strcspn(line, "\n")] = '\0';
-
-    // Formato esperado: PID, ACTION, RESOURCE, CYCLE
     if (sscanf(line, " %[^,], %[^,], %[^,], %d",
                actions[count].pid,
                actionStr,
                actions[count].resourceName,
                &actions[count].cycle) == 4)
     {
-
       if (strcmp(actionStr, "READ") == 0)
       {
         actions[count].action = ACTION_READ;
@@ -192,35 +186,26 @@ int loadActions(const char *filename, Action *actions, int maxActions)
 }
 
 /**
- * Calcula las métricas promedio de la simulación a partir de los procesos dados.
+ * Calcula métricas: solo avgWaitingTime.
  * Métricas calculadas: tiempo promedio de espera, tiempo promedio de respuesta y tiempo promedio de turnaround.
  *
  * @param processes Arreglo de procesos con sus tiempos registrados.
  * @param processCount Número total de procesos en el arreglo.
- * @return Estructura SimulationMetrics con los valores promedio calculados.
+ * @return Estructura SimulationMetrics con métricas
  */
 SimulationMetrics calculateMetrics(Process *processes, int processCount)
 {
-  SimulationMetrics metrics = {0.0f, 0.0f, 0.0f};
+  SimulationMetrics metrics = {0.0f};
   int totalWaitingTime = 0;
-  int totalTurnaroundTime = 0;
-  int totalResponseTime = 0;
 
   for (int i = 0; i < processCount; i++)
   {
-    int turnaroundTime = processes[i].finishTime - processes[i].arrivalTime;
-    int responseTime = processes[i].startTime - processes[i].arrivalTime;
-
     totalWaitingTime += processes[i].waitingTime;
-    totalTurnaroundTime += turnaroundTime;
-    totalResponseTime += responseTime;
   }
 
   if (processCount > 0)
   {
     metrics.avgWaitingTime = (float)totalWaitingTime / processCount;
-    metrics.avgTurnaroundTime = (float)totalTurnaroundTime / processCount;
-    metrics.avgResponseTime = (float)totalResponseTime / processCount;
   }
 
   return metrics;
@@ -251,7 +236,6 @@ void exportTimelineEvents(const char *filename, TimelineEvent *events, int event
 
   fclose(file);
 }
-
 /**
  * Exporta las métricas de simulación a un archivo de texto.
  * Se escriben las métricas promedio de espera, turnaround y respuesta.
@@ -266,8 +250,32 @@ void exportMetrics(const char *filename, SimulationMetrics metrics)
     return;
 
   fprintf(file, "Average Waiting Time: %.2f\n", metrics.avgWaitingTime);
-  fprintf(file, "Average Turnaround Time: %.2f\n", metrics.avgTurnaroundTime);
-  fprintf(file, "Average Response Time: %.2f\n", metrics.avgResponseTime);
-
   fclose(file);
+}
+
+/**
+ * Imprime en formato JSON las métricas de un proceso específico en la salida estándar.
+ *
+ * Este método muestra información clave del proceso para su análisis o monitoreo, incluyendo:
+ * - Identificador del proceso (pid)
+ * - Tiempo de llegada (arrivalTime)
+ * - Tiempo de ráfaga (burstTime)
+ * - Prioridad (priority)
+ * - Tiempo de inicio de ejecución (startTime)
+ * - Tiempo de finalización (finishTime)
+ * - Tiempo total de espera (waitingTime)
+ *
+ * La información se imprime en una línea con formato JSON, lo que facilita su procesamiento
+ * automatizado, como para ser leído por scripts, sistemas de logging o monitoreo.
+ *
+ * @param p Puntero a la estructura Process que contiene los datos del proceso.
+ */
+void exportProcessMetric(const Process *p)
+{
+  printf(
+      "{\"event\": \"PROCESS_METRIC\", \"pid\": \"%s\", \"arrivalTime\": %d, \"burstTime\": %d, \"priority\": %d, "
+      "\"startTime\": %d, \"endTime\": %d, \"waitingTime\": %d}\n",
+      p->pid, p->arrivalTime, p->burstTime, p->priority,
+      p->startTime, p->finishTime, p->waitingTime);
+  fflush(stdout);
 }
