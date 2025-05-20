@@ -8,6 +8,9 @@
  */
 #define PID_MAX_LEN 10
 #define RESOURCE_NAME_MAX_LEN 10
+#define MAX_PROCESSES 100
+#define MAX_EVENTS 500
+#define SIMULATION_DELAY_US 100000
 
 /**
  * Enumeración de Algoritmos de Calendarización

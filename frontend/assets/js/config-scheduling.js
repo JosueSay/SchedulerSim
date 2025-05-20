@@ -67,7 +67,7 @@ function validateSimulationConfig(config) {
 async function startSimulation() {
   const config = {
     algorithm: document.getElementById("algorithm").value,
-    quantum: document.getElementById("quantum")?.value || null,
+    quantum: parseInt(document.getElementById("quantum")?.value || "0"),
     isPreemptive: document.getElementById("isPreemptive")?.value || "0",
   };
 

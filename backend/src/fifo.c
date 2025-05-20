@@ -3,11 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/*
- * Configuración de Simulación
- */
-#define SIMULATION_DELAY_US 100000
-
 /**
  * Simula la planificación FIFO (First In, First Out) en tiempo real para un conjunto de procesos.
  *

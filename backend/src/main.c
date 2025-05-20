@@ -1,11 +1,11 @@
 #include "simulator.h"
 #include "fifo.h"
 #include "sjf.h"
+#include "rr.h"
 #include <stdio.h>
 #include <string.h>
-
-#define MAX_PROCESSES 100
-#define MAX_EVENTS 500
+#include <cjson/cJSON.h>
+#include <stdlib.h>
 
 // Traduce string a enum
 SchedulingAlgorithm parseAlgorithm(const char *str)
@@ -23,22 +23,44 @@ SchedulingAlgorithm parseAlgorithm(const char *str)
   return ALGO_NONE;
 }
 
-// Lee la configuración desde stdin (en formato JSON)
+// Lee la configuración desde stdin (en formato JSON) usando cJSON
 void readConfigFromStdin(SimulationControl *control)
 {
-  char buffer[256];
+  char buffer[512];
   if (fgets(buffer, sizeof(buffer), stdin))
   {
-    char algorithmStr[20];
-    int quantum = 0;
-    int isPreemptive = 0;
+    cJSON *json = cJSON_Parse(buffer);
+    if (json == NULL)
+    {
+      fprintf(stderr, "Error al parsear configuración JSON.\n");
+      exit(EXIT_FAILURE);
+    }
 
-    sscanf(buffer, "{\"algorithm\":\"%[^\"]\", \"quantum\":%d, \"isPreemptive\":%d}",
-           algorithmStr, &quantum, &isPreemptive);
+    const cJSON *alg = cJSON_GetObjectItemCaseSensitive(json, "algorithm");
+    const cJSON *quant = cJSON_GetObjectItemCaseSensitive(json, "quantum");
+    const cJSON *preempt = cJSON_GetObjectItemCaseSensitive(json, "isPreemptive");
 
-    control->config.algorithm = parseAlgorithm(algorithmStr);
-    control->config.quantum = quantum;
-    control->config.isPreemptive = isPreemptive;
+    if (cJSON_IsString(alg) && alg->valuestring)
+      control->config.algorithm = parseAlgorithm(alg->valuestring);
+    else
+      control->config.algorithm = ALGO_FIFO;
+
+    if (cJSON_IsNumber(quant))
+      control->config.quantum = quant->valueint;
+    else
+      control->config.quantum = 0;
+
+    if (cJSON_IsNumber(preempt))
+      control->config.isPreemptive = preempt->valueint;
+    else
+      control->config.isPreemptive = 0;
+
+    printf("Algoritmo: %s | Quantum: %d | Preemptivo: %d\n",
+           alg && alg->valuestring ? alg->valuestring : "(none)",
+           control->config.quantum,
+           control->config.isPreemptive);
+
+    cJSON_Delete(json);
   }
   else
   {
@@ -84,6 +106,9 @@ int main()
     break;
   case ALGO_SJF:
     simulateSJF(processes, processCount, timelineEvents, &eventCount, &control);
+    break;
+  case ALGO_RR:
+    simulateRR(processes, processCount, timelineEvents, &eventCount, &control);
     break;
   default:
     printf("Algoritmo no soportado.\n");

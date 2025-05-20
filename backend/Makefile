@@ -1,6 +1,7 @@
 # Variables
 CC = gcc
 CFLAGS = -Wall -Iinclude
+LDFLAGS = -lcjson
 SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
@@ -15,7 +16,7 @@ all: $(TARGET)
 # Create binary
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile .c files into .o
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c

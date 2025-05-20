@@ -4,11 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-/*
- * Configuración de Simulación
- */
-#define SIMULATION_DELAY_US 100000
-
 /**
  * Simula la planificación SJF (Shortest Job First) no expropiativa en tiempo real para un conjunto de procesos.
  *

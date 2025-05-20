@@ -123,6 +123,7 @@ async def websocketSimulationScheduling(websocket: WebSocket):
                 break
 
             decodedLine = line.decode().strip()
+            print("[BINARIO STDOUT]", decodedLine) # Debugging
             try:
                 eventData = json.loads(decodedLine)
                 if websocket.client_state.value == 1:

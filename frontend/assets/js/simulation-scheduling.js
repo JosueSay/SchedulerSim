@@ -148,6 +148,7 @@ function initializeSimulation() {
 
   ws.onopen = () => {
     console.log("Conexión WebSocket establecida.");
+    console.log("Configuración de simulación:", config);
     ws.send(JSON.stringify(config));
     document.getElementById(
       "algorithm-used"
