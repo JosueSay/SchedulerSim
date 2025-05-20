@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simulador de Planificación</title>
+    <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
+    <link href="/static/css/common.css" rel="stylesheet" />
+    <link href="/static/css/synchronization.css" rel="stylesheet" />
+  </head>
+  <body onload="initializeIndex();">
+    <h1>Simulador de Planificación</h1>
+
+    <form id="upload-form" enctype="multipart/form-data">
+      <div class="card">
+        <img src="/static/images/txt-icon.png" alt="Procesos" class="icon" />
+        <div class="content">
+          <label>Procesos:</label>
+          <input type="file" id="procesos" name="procesos" accept=".txt" />
+        </div>
+        <div class="example"><strong>Ejemplo:</strong><br />P1, 8, 0, 1</div>
+      </div>
+
+      <div class="card">
+        <img src="/static/images/txt-icon.png" alt="Recursos" class="icon" />
+        <div class="content">
+          <label>Recursos:</label>
+          <input type="file" id="recursos" name="recursos" accept=".txt" />
+        </div>
+        <div class="example"><strong>Ejemplo:</strong><br />R1, 1</div>
+      </div>
+
+      <div class="card">
+        <img src="/static/images/txt-icon.png" alt="Acciones" class="icon" />
+        <div class="content">
+          <label>Acciones:</label>
+          <input type="file" id="acciones" name="acciones" accept=".txt" />
+        </div>
+        <div class="example">
+          <strong>Ejemplo:</strong><br />P1, READ, R1, 0
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 50px">
+        <button type="button" class="main-button" onclick="uploadAll();">
+          Subir Archivos
+        </button>
+      </div>
+    </form>
+
+    <script src="/static/js/alerts.js"></script>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/synchronization.js"></script>
+  </body>
+</html>
