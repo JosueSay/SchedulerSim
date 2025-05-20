@@ -13,6 +13,8 @@ void simulateRR(Process *processes, int processCount,
   int queue[MAX_PROCESSES];
   int queueStart = 0, queueEnd = 0;
   int remainingBurst[MAX_PROCESSES];
+  int quantumCounter = 0;
+  int currentProcess = -1;
   *eventCount = 0;
 
   printf("Quantum recibido: %d\n", quantum);
@@ -24,59 +26,70 @@ void simulateRR(Process *processes, int processCount,
 
   while (completed < processCount)
   {
-    // Agregar procesos listos a la cola
+    // Agregar procesos nuevos al queue
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime <= currentTime && processes[i].state == STATE_NEW)
+      if (processes[i].arrivalTime == currentTime && processes[i].state == STATE_NEW)
       {
         processes[i].state = STATE_WAITING;
         queue[queueEnd++] = i;
       }
     }
 
-    if (queueStart == queueEnd)
+    // Si no hay proceso actual o se agotó el quantum
+    if (currentProcess == -1 || quantumCounter == quantum)
     {
-      currentTime++;
-      usleep(SIMULATION_DELAY_US);
-      continue;
+      // Si el proceso actual aún no ha terminado, reencolarlo
+      if (currentProcess != -1 && remainingBurst[currentProcess] > 0)
+      {
+        queue[queueEnd++] = currentProcess;
+      }
+
+      // Obtener siguiente proceso de la cola
+      if (queueStart < queueEnd)
+      {
+        currentProcess = queue[queueStart++];
+        quantumCounter = 0;
+
+        if (processes[currentProcess].startTime == -1)
+        {
+          processes[currentProcess].startTime = currentTime;
+        }
+      }
+      else
+      {
+        currentProcess = -1; // no hay proceso actual
+      }
     }
 
-    int idx = queue[queueStart++];
-    Process *p = &processes[idx];
-
-    if (p->startTime == -1)
+    if (currentProcess != -1)
     {
-      p->startTime = currentTime;
-    }
-
-    int execTime = remainingBurst[idx] > quantum ? quantum : remainingBurst[idx];
-
-    for (int c = 0; c < execTime; c++)
-    {
-      snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", p->pid);
+      // Ejecutar el proceso actual por 1 ciclo
+      snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[currentProcess].pid);
       events[*eventCount].startCycle = currentTime;
       events[*eventCount].endCycle = currentTime + 1;
       events[*eventCount].state = STATE_ACCESSED;
       exportEventRealtime(&events[*eventCount]);
       (*eventCount)++;
-      currentTime++;
-      usleep(SIMULATION_DELAY_US);
+
+      remainingBurst[currentProcess]--;
+      quantumCounter++;
+
+      if (remainingBurst[currentProcess] == 0)
+      {
+        processes[currentProcess].finishTime = currentTime + 1;
+        processes[currentProcess].waitingTime =
+            processes[currentProcess].finishTime - processes[currentProcess].arrivalTime - processes[currentProcess].burstTime;
+        processes[currentProcess].state = STATE_TERMINATED;
+        exportProcessMetric(&processes[currentProcess]);
+        completed++;
+        currentProcess = -1;
+        quantumCounter = 0;
+      }
     }
 
-    remainingBurst[idx] -= execTime;
-
-    if (remainingBurst[idx] == 0)
-    {
-      p->finishTime = currentTime;
-      p->waitingTime = p->finishTime - p->arrivalTime - p->burstTime;
-      p->state = STATE_TERMINATED;
-      exportProcessMetric(p);
-      completed++;
-    }
-    else
-    {
-      queue[queueEnd++] = idx;
-    }
+    currentTime++;
+    usleep(SIMULATION_DELAY_US);
   }
 
   exportSimulationEnd();
