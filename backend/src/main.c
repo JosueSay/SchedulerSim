@@ -13,7 +13,7 @@ int main()
   Resource resources[MAX_RESOURCES];
   Action actions[MAX_ACTIONS];
   TimelineEvent timelineEvents[MAX_EVENTS];
-  SimulationControl control = {0, 0, {ALGO_FIFO, 0, 0}};
+  SimulationControl control = {{ALGO_FIFO, 0, 0}};
   int eventCount = 0;
 
   // Cargar archivos de entrada

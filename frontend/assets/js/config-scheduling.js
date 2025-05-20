@@ -31,29 +31,9 @@ function onAlgorithmChange() {
  * @param {string} config.algorithm - Algoritmo seleccionado.
  * @param {string|null} config.quantum - Valor del quantum, si aplica.
  * @param {string} config.isPreemptive - Valor que indica si es preemptivo.
- * @param {number} config.startCycle - Ciclo inicial de la simulación.
- * @param {number} config.maxCycles - Máximo de ciclos de la simulación.
  * @returns {boolean} true si la configuración es válida, false si no.
  */
 function validateSimulationConfig(config) {
-  if (config.startCycle < 0) {
-    showAlert(
-      "Error de Configuración",
-      "El ciclo inicial no puede ser negativo.",
-      "error"
-    );
-    return false;
-  }
-
-  if (config.maxCycles < 0) {
-    showAlert(
-      "Error de Configuración",
-      "Los ciclos máximos no pueden ser negativos.",
-      "error"
-    );
-    return false;
-  }
-
   if (config.algorithm === "RR") {
     if (!config.quantum || parseInt(config.quantum) <= 0) {
       showAlert(
@@ -89,8 +69,6 @@ async function startSimulation() {
     algorithm: document.getElementById("algorithm").value,
     quantum: document.getElementById("quantum").value || null,
     isPreemptive: document.getElementById("isPreemptive").value,
-    startCycle: parseInt(document.getElementById("startCycle").value),
-    maxCycles: parseInt(document.getElementById("maxCycles").value),
   };
 
   if (!validateSimulationConfig(config)) return;

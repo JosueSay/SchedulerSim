@@ -37,8 +37,6 @@ typedef struct
  */
 typedef struct
 {
-  int currentCycle;
-  int totalCycles;
   SimulationConfig config;
 } SimulationControl;
 

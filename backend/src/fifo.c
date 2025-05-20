@@ -106,10 +106,4 @@ void simulateFIFO(Process *processes, int processCount,
   }
 
   exportSimulationEnd();
-
-  if (control)
-  {
-    control->currentCycle = currentTime;
-    control->totalCycles = currentTime;
-  }
 }
