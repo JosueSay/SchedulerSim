@@ -109,7 +109,7 @@ function initializeSimulation() {
   const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
     algorithm: "FIFO",
   };
-  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation");
+  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation-scheduling");
 
   let currentCycle = 0;
   const events = [];
@@ -171,7 +171,7 @@ function resetSimulation() {
  */
 function restartSimulation() {
   denyAccess();
-  window.location.href = "/config";
+  window.location.href = "/config-scheduling";
 }
 
 function returnHome() {

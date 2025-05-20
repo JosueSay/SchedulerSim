@@ -1,25 +1,26 @@
 /**
- * Inicializa la página principal eliminando accesos previos
- * y cargando la vista previa de los archivos 'procesos.txt', 'recursos.txt' y 'acciones.txt'.
+ * Inicializa el proceso de carga de sincronización denegando el acceso previo.
+ * Se muestra un mensaje en consola y se llama a `denyAccess()` para prevenir acceso hasta completar validación.
+ *
+ * @return {void}
  */
-function initializeIndex() {
-  console.log("[DEBUG] Entrando a '/', eliminando acceso previo.");
-  denyAccess();
-
-  ["procesos", "recursos", "acciones"].forEach((type) =>
-    loadFilePreview(type, `${type}.txt`)
+function initializeSyncUpload() {
+  console.log(
+    "[DEBUG] Entrando a /upload-synchronization, eliminando acceso previo."
   );
+  denyAccess();
 }
 
 /**
- * Valida el contenido de un archivo de texto según su tipo.
- * Usa expresiones regulares específicas para cada tipo de archivo.
+ * Valida el contenido de un archivo `.txt` según su tipo (procesos, recursos o acciones).
+ * Verifica que cada línea cumpla un patrón específico predefinido por tipo.
+ * Muestra una alerta si alguna línea tiene un formato inválido.
  *
- * @param {string} type - Tipo de archivo: 'procesos', 'recursos' o 'acciones'.
- * @param {string} content - Contenido del archivo a validar.
- * @returns {boolean} - True si el contenido es válido, false si hay errores.
+ * @param {string} type - Tipo del archivo: "procesos", "recursos" o "acciones".
+ * @param {string} content - Contenido completo del archivo a validar.
+ * @return {boolean} `true` si el contenido es válido; de lo contrario, `false`.
  */
-function validateTxtContent(type, content) {
+function validateSyncTxtContent(type, content) {
   const lines = content.trim().split("\n");
   const regexPatterns = {
     procesos: /^[A-Za-z0-9]+,\s*\d+,\s*\d+,\s*\d+$/,
@@ -46,18 +47,19 @@ function validateTxtContent(type, content) {
 }
 
 /**
- * Valida y lee un archivo de texto.
+ * Lee y valida un archivo `.txt` de forma asíncrona.
+ * Usa FileReader para leer el archivo como texto y valida su contenido.
  *
- * @param {File} file - Archivo a validar y leer.
- * @param {string} type - Tipo del archivo ('procesos', 'recursos', 'acciones').
- * @returns {Promise<boolean>} - Promesa que resuelve true si el contenido es válido, false si no.
+ * @param {File} file - Objeto `File` del input HTML.
+ * @param {string} type - Tipo del archivo: "procesos", "recursos" o "acciones".
+ * @return {Promise<boolean>} Promesa que resuelve en `true` si el contenido es válido; de lo contrario, `false`.
  */
-async function validateAndReadFile(file, type) {
+async function validateAndReadSyncFile(file, type) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target.result;
-      const isValid = validateTxtContent(type, content);
+      const isValid = validateSyncTxtContent(type, content);
       resolve(isValid);
     };
     reader.readAsText(file);
@@ -65,12 +67,13 @@ async function validateAndReadFile(file, type) {
 }
 
 /**
- * Valida que los archivos requeridos estén completos,
- * que tengan los nombres y extensiones correctas,
- * valida su contenido y luego los sube al servidor.
- * En caso de éxito, permite el acceso y redirige a '/config'.
+ * Valida la selección, nombre y formato de los archivos requeridos (procesos.txt, recursos.txt, acciones.txt).
+ * Verifica que el contenido de cada archivo sea válido.
+ * Si todo es correcto, sube los archivos al backend y muestra alertas según el resultado.
+ *
+ * @return {Promise<void>} No retorna valor, pero gestiona todo el proceso de validación y subida.
  */
-async function uploadAll() {
+async function uploadAllSyncFiles() {
   const files = {
     procesos: document.getElementById("procesos").files[0],
     recursos: document.getElementById("recursos").files[0],
@@ -113,9 +116,9 @@ async function uploadAll() {
   }
 
   const validations = await Promise.all([
-    validateAndReadFile(files.procesos, "procesos"),
-    validateAndReadFile(files.recursos, "recursos"),
-    validateAndReadFile(files.acciones, "acciones"),
+    validateAndReadSyncFile(files.procesos, "procesos"),
+    validateAndReadSyncFile(files.recursos, "recursos"),
+    validateAndReadSyncFile(files.acciones, "acciones"),
   ]);
 
   if (validations.includes(false)) return;
@@ -133,27 +136,8 @@ async function uploadAll() {
   if (response.ok) {
     showAlert("Éxito", "Archivos subidos correctamente.", "success");
     allowAccess();
-    setTimeout(() => (window.location.href = "/config"), 1500);
+    setTimeout(() => (window.location.href = "/config-synchronization"), 1500);
   } else {
     showAlert("Error", "Error al subir los archivos.", "error");
-  }
-}
-
-/**
- * Carga la vista previa de un archivo específico desde el servidor
- * y la muestra en el elemento con id "preview-{type}".
- *
- * @param {string} type - Tipo del archivo ('procesos', 'recursos', 'acciones').
- * @param {string} filename - Nombre del archivo (ej. "procesos.txt").
- */
-async function loadFilePreview(type, filename) {
-  const response = await fetch("/listFiles/");
-  const files = await response.json();
-  const preview = files.find((f) => f.name === filename);
-  const previewElement = document.getElementById(`preview-${type}`);
-  if (previewElement) {
-    previewElement.textContent = preview
-      ? preview.preview
-      : "Sin vista previa.";
   }
 }

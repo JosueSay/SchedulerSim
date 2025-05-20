@@ -1,11 +1,11 @@
 /**
- * Inicializa la configuración verificando acceso a la ruta "/config".
+ * Inicializa la configuración verificando acceso a la ruta "/config-scheduling".
  * Si no se tiene acceso, no continúa.
  *
  * @returns {Promise<void>}
  */
 async function initializeConfig() {
-  const hasRouteAccess = await checkRouteAccess("/config");
+  const hasRouteAccess = await checkRouteAccess("/config-scheduling");
   if (!hasRouteAccess) return;
 }
 
@@ -97,5 +97,5 @@ async function startSimulation() {
 
   // Guardar configuración para uso posterior
   localStorage.setItem("lastSimulationConfig", JSON.stringify(config));
-  window.location.href = "/simulation";
+  window.location.href = "/simulation-scheduling";
 }

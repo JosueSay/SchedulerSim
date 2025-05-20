@@ -1,11 +1,22 @@
+/**
+ * Inicializa la sección de carga para planificación (scheduling).
+ * Elimina el acceso previo mediante la función `denyAccess()`.
+ * No recibe parámetros ni retorna valor.
+ */
 function initializeScheduling() {
   console.log(
     "[DEBUG] Entrando a /upload-scheduling, eliminando acceso previo."
   );
   denyAccess();
-  loadFilePreview("procesos", "procesos.txt");
 }
 
+/**
+ * Valida el contenido de un archivo `procesos.txt` asegurando que
+ * cada línea siga el patrón esperado: ID, tiempo de llegada, duración, prioridad.
+ *
+ * @param {string} content - Contenido del archivo como texto plano.
+ * @return {boolean} - `true` si todas las líneas cumplen con el formato, `false` en caso contrario.
+ */
 function validateTxtContent(content) {
   const lines = content.trim().split("\n");
   const pattern = /^[A-Za-z0-9]+,\s*\d+,\s*\d+,\s*\d+$/;
@@ -25,6 +36,13 @@ function validateTxtContent(content) {
   return true;
 }
 
+/**
+ * Realiza la carga del archivo `procesos.txt` para la planificación.
+ * Verifica existencia, nombre y formato del archivo, valida su contenido y lo sube vía `fetch`.
+ * Muestra alertas en caso de error y redirecciona si la carga es exitosa.
+ *
+ * @return {Promise<void>} - No retorna un valor, pero ejecuta acciones asíncronas.
+ */
 async function uploadScheduling() {
   const file = document.getElementById("procesos").files[0];
 
@@ -43,7 +61,7 @@ async function uploadScheduling() {
   ) {
     showAlert(
       "Nombre o formato incorrecto",
-      "El archivo debe llamarse <strong>procesos.txt</strong> y tener extensión .txt",
+      "El archivo debe llamarse procesos.txt y tener extensión .txt",
       "warning"
     );
     return;
@@ -63,20 +81,8 @@ async function uploadScheduling() {
   if (response.ok) {
     showAlert("Éxito", "Archivo subido correctamente.", "success");
     allowAccess();
-    setTimeout(() => (window.location.href = "/config"), 1500);
+    setTimeout(() => (window.location.href = "/config-scheduling"), 1500);
   } else {
     showAlert("Error", "Error al subir el archivo.", "error");
-  }
-}
-
-async function loadFilePreview(type, filename) {
-  const response = await fetch("/listFiles/");
-  const files = await response.json();
-  const preview = files.find((f) => f.name === filename);
-  const previewElement = document.getElementById(`preview-${type}`);
-  if (previewElement) {
-    previewElement.textContent = preview
-      ? preview.preview
-      : "Sin vista previa.";
   }
 }

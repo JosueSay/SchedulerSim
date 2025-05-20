@@ -7,7 +7,7 @@
     <link href="/static/css/common.css" rel="stylesheet" />
     <link href="/static/css/synchronization.css" rel="stylesheet" />
   </head>
-  <body onload="initializeIndex();">
+  <body onload="initializeSyncUpload();">
     <h1>Simulador de Planificación</h1>
 
     <form id="upload-form" enctype="multipart/form-data">
@@ -41,7 +41,11 @@
       </div>
 
       <div style="text-align: center; margin-top: 50px">
-        <button type="button" class="main-button" onclick="uploadAll();">
+        <button
+          type="button"
+          class="main-button"
+          onclick="uploadAllSyncFiles();"
+        >
           Subir Archivos
         </button>
       </div>
