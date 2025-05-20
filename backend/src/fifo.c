@@ -9,36 +9,6 @@
 #define SIMULATION_DELAY_US 100000
 
 /**
- * Imprime en formato JSON la información de un evento de línea de tiempo en tiempo real.
- *
- * @param event Puntero al evento (TimelineEvent) a exportar.
- *              Incluye PID, ciclo inicial, ciclo final y estado del proceso.
- *
- * Esta función imprime el evento y fuerza la salida inmediata (fflush).
- */
-void exportEventRealtime(TimelineEvent *event)
-{
-  printf("{\"pid\": \"%s\", \"startCycle\": %d, \"endCycle\": %d, \"state\": \"%s\"}\n",
-         event->pid,
-         event->startCycle,
-         event->endCycle,
-         getProcessStateName(event->state));
-  fflush(stdout);
-}
-
-/**
- * Imprime un mensaje JSON indicando que la simulación ha finalizado.
- *
- * No recibe parámetros.
- * La salida se fuerza inmediatamente con fflush.
- */
-void exportSimulationEnd()
-{
-  printf("{\"event\": \"SIMULATION_END\"}\n");
-  fflush(stdout);
-}
-
-/**
  * Simula la planificación FIFO (First In, First Out) en tiempo real para un conjunto de procesos.
  *
  * @param processes    Arreglo de procesos a simular.

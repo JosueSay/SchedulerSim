@@ -8,10 +8,4 @@ void simulateFIFO(Process *processes, int processCount,
                   TimelineEvent *events, int *eventCount,
                   SimulationControl *control);
 
-// Exporta un evento en formato JSON en tiempo real
-void exportEventRealtime(TimelineEvent *event);
-
-// Notifica el fin de la simulación en tiempo real
-void exportSimulationEnd();
-
 #endif

@@ -126,6 +126,8 @@ SimulationMetrics calculateMetrics(Process *processes, int processCount);
 void exportTimelineEvents(const char *filename, TimelineEvent *events, int eventCount);
 void exportMetrics(const char *filename, SimulationMetrics metrics);
 void exportProcessMetric(const Process *p);
+void exportEventRealtime(TimelineEvent *event);
+void exportSimulationEnd();
 
 /**
  * Funciones para carga y manejo de datos

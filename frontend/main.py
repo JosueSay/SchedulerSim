@@ -104,9 +104,18 @@ async def websocketSimulationScheduling(websocket: WebSocket):
 
         process = await asyncio.create_subprocess_exec(
             "../backend/bin/scheduling-simulator",
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
+
+        # Enviar configuración JSON por stdin
+        if process.stdin:
+            process.stdin.write((configData + "\n").encode())
+            await process.stdin.drain()
+            process.stdin.close()
+        else:
+            print("Error: process.stdin es None")
 
         while True:
             line = await process.stdout.readline()

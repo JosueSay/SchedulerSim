@@ -1,1 +1,1 @@
-Average Waiting Time: 27.40
+Average Waiting Time: 19.67

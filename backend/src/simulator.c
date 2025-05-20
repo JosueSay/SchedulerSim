@@ -279,3 +279,19 @@ void exportProcessMetric(const Process *p)
       p->startTime, p->finishTime, p->waitingTime);
   fflush(stdout);
 }
+
+void exportEventRealtime(TimelineEvent *event)
+{
+  printf("{\"pid\": \"%s\", \"startCycle\": %d, \"endCycle\": %d, \"state\": \"%s\"}\n",
+         event->pid,
+         event->startCycle,
+         event->endCycle,
+         getProcessStateName(event->state));
+  fflush(stdout);
+}
+
+void exportSimulationEnd()
+{
+  printf("{\"event\": \"SIMULATION_END\"}\n");
+  fflush(stdout);
+}
