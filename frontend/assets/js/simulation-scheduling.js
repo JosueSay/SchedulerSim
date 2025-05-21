@@ -311,7 +311,17 @@ function downloadScreenshot() {
 
 function toggleGanttOrder() {
   sortGanttByPID = !sortGanttByPID;
-  renderGanttTable(events); // volver a renderizar
+  renderGanttTable(events);
+
+  const ganttBtn = document.querySelector(
+    "button[onclick='toggleGanttOrder()']"
+  );
+  if (sortGanttByPID) {
+    ganttBtn.classList.add("active");
+  } else {
+    ganttBtn.classList.remove("active");
+    ganttBtn.textContent = "Ordenar por PID";
+  }
 }
 
 function sortMetrics(field) {
@@ -333,4 +343,15 @@ function sortMetrics(field) {
   });
 
   renderMetricsTable();
+
+  // Estilo activo
+  document
+    .querySelectorAll(".metrics-sort-buttons .secondary-button")
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
+  const activeBtn = document.querySelector(
+    `.metrics-sort-buttons button[onclick="sortMetrics('${field}')"]`
+  );
+  if (activeBtn) activeBtn.classList.add("active");
 }
