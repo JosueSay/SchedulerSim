@@ -23,7 +23,7 @@ void simulateFIFO(Process *processes, int processCount,
   int currentTime = 0;
   *eventCount = 0;
 
-  // Ordenar por tiempo de llegada (Arrival Time)
+  // Ordenar por arrivalTime
   for (int i = 0; i < processCount - 1; i++)
   {
     for (int j = i + 1; j < processCount; j++)
@@ -37,36 +37,50 @@ void simulateFIFO(Process *processes, int processCount,
     }
   }
 
-  // Ejecutar procesos en orden FIFO
+  // Inicializar NEW en su ciclo de llegada para todos los procesos
   for (int i = 0; i < processCount; i++)
   {
-    if (currentTime < processes[i].arrivalTime)
+    printEventForProcess(&processes[i], processes[i].arrivalTime, STATE_NEW, events, eventCount);
+  }
+
+  for (int i = 0; i < processCount; i++)
+  {
+    // Si el proceso aún no ha llegado, avanza el tiempo registrando espera para otros
+    while (currentTime < processes[i].arrivalTime)
     {
-      currentTime = processes[i].arrivalTime;
+      for (int j = 0; j < processCount; j++)
+      {
+        if (j != i &&
+            processes[j].arrivalTime <= currentTime &&
+            processes[j].startTime == -1)
+        {
+          printEventForProcess(&processes[j], currentTime, STATE_WAITING, events, eventCount);
+        }
+      }
+      currentTime++;
     }
 
+    // Empieza ejecución
     processes[i].startTime = currentTime;
     processes[i].finishTime = currentTime + processes[i].burstTime;
     processes[i].waitingTime = processes[i].startTime - processes[i].arrivalTime;
-    processes[i].state = STATE_TERMINATED;
 
-    // Simular ciclo por ciclo
-    for (int c = 0; c < processes[i].burstTime; c++)
+    // Si el proceso ya estaba esperando (llegó antes de currentTime), registramos esos ciclos como WAITING
+    for (int w = processes[i].arrivalTime; w < processes[i].startTime; w++)
     {
-      snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", processes[i].pid);
-      events[*eventCount].startCycle = currentTime;
-      events[*eventCount].endCycle = currentTime + 1;
-      events[*eventCount].state = STATE_ACCESSED;
-
-      exportEventRealtime(&events[*eventCount]);
-
-      (*eventCount)++;
-      currentTime++;
-
-      usleep(SIMULATION_DELAY_US); // delay para frontend
+      printEventForProcess(&processes[i], w, STATE_WAITING, events, eventCount);
     }
 
-    // Enviar métrica individual del proceso
+    // Ciclos de ejecución
+    for (int c = 0; c < processes[i].burstTime; c++)
+    {
+      printEventForProcess(&processes[i], currentTime, STATE_ACCESSED, events, eventCount);
+      currentTime++;
+      usleep(SIMULATION_DELAY_US);
+    }
+
+    processes[i].state = STATE_TERMINATED;
+    printEventForProcess(&processes[i], currentTime - 1, STATE_TERMINATED, events, eventCount);
     exportProcessMetric(&processes[i]);
   }
 

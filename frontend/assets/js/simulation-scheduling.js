@@ -12,11 +12,9 @@ const processMetrics = [];
  * @param {number} index - índice único para espaciado
  * @returns {string} color en formato hsl
  */
-function generateUniqueColor(index) {
+function generateBaseRGBA(index) {
   const hue = (index * 137.508) % 360;
-  const saturation = 65;
-  const lightness = 55;
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  return `hsla(${hue}, 65%, 55%,`;
 }
 
 /**
@@ -24,9 +22,24 @@ function generateUniqueColor(index) {
  */
 function getProcessColor(pid) {
   if (!processColors[pid]) {
-    processColors[pid] = generateUniqueColor(colorIndex++);
+    processColors[pid] = generateBaseRGBA(colorIndex++);
   }
-  return processColors[pid];
+  return processColors[pid]; // Devuelve por ejemplo "hsla(120,65%,55%,"
+}
+
+function getColorForProcess(pid, state) {
+  const base = getProcessColor(pid); // devuelve algo como hsla(...,
+  switch (state) {
+    case "NEW":
+    case "TERMINATED":
+      return `${base} 1)`; // opacidad completa
+    case "ACCESSED":
+      return `${base} 0.7)`; // tono medio
+    case "WAITING":
+      return `${base} 0.3)`; // tono opaco
+    default:
+      return `${base} 1)`; // fallback
+  }
 }
 
 /**
@@ -52,10 +65,10 @@ function renderGanttTable(events) {
   const pids = [...new Set(events.map((e) => e.pid))];
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
-  // Construye la leyenda mostrando el color asignado a cada proceso
+  // Construye la leyenda mostrando el color asignado a cada proceso (usando color de estado NEW)
   pids.forEach((pid) => {
-    const color = getProcessColor(pid);
-    legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background:${color}"></div>${pid}</div>`;
+    const legendColor = getColorForProcess(pid, "NEW");
+    legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background:${legendColor}"></div>${pid}</div>`;
   });
 
   // Construye la fila de encabezado con el título y números de ciclo
@@ -68,14 +81,23 @@ function renderGanttTable(events) {
   pids.forEach((pid) => {
     let row = `<tr><td>${pid}</td>`;
     for (let c = 0; c <= maxCycle; c++) {
-      const event = events.find(
+      // Obtener todos los eventos que coincidan con este ciclo y proceso
+      const matchingEvents = events.filter(
         (e) => e.pid === pid && c >= e.startCycle && c < e.endCycle
       );
-      // Si existe evento, colorea la celda con el color del proceso y muestra su pid
-      // Si no, deja la celda vacía
-      row += event
-        ? `<td style="background:${getProcessColor(
-            pid
+
+      // Prioridad: NEW y TERMINATED por encima de ACCESSED y WAITING
+      let chosenEvent = null;
+      const priorityOrder = ["NEW", "TERMINATED", "ACCESSED", "WAITING"];
+      for (const state of priorityOrder) {
+        chosenEvent = matchingEvents.find((e) => e.state === state);
+        if (chosenEvent) break;
+      }
+
+      row += chosenEvent
+        ? `<td style="background:${getColorForProcess(
+            pid,
+            chosenEvent.state
           )}; color: #000;">${pid}</td>`
         : "<td></td>";
     }
