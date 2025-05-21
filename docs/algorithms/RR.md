@@ -68,7 +68,8 @@ La simulación continúa hasta que todos los procesos han sido completados. Una 
 
 ## Referencias a documentación
 
-* Estructura del proceso y atributos: [docs/definitions/process.md](../definitions/process.md)
-* Definición de eventos y su uso: [docs/definitions/event-metrics.md](../definitions/event_metrics.md)
-* Control de simulación y parámetros como el quantum: [docs/definitions/common.md](../definitions/common.md)
-* Protocolo general de algoritmos de planificación: [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md)
+* Estructura del proceso: [docs/definitions/process.md](../definitions/process.md)
+* Definición de eventos en timeline: [docs/definitions/event-metrics.md](../definitions/event_metrics.md)
+* Control de simulación (SimulationControl): [docs/definitions/common.md](../definitions/common.md)
+* Protocolo para algoritmos de planificación: [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md)
+* Video explicativo de referencia: [ALGORITMO DE PLANIFICACIÓN ROUND ROBIN DE LA CPU PARA LA ASIGNACIÓN DE PROCESOS DEL SO](https://www.youtube.com/watch?v=YNBKR8eQJnE)

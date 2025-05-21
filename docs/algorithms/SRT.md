@@ -85,3 +85,4 @@ Una vez finalizada la simulación:
 * Definición de eventos en timeline: [docs/definitions/event-metrics.md](../definitions/event_metrics.md)
 * Control de simulación (SimulationControl): [docs/definitions/common.md](../definitions/common.md)
 * Protocolo para algoritmos de planificación: [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md)
+* Video explicativo de referencia: [ALGORITMO DE PLANIFICACIÓN SRTF DE LA CPU PARA LA ASIGNACIÓN DE PROCESOS DEL SISTEMA OPERATIVO](https://www.youtube.com/watch?v=UuNPVxJ17j0)

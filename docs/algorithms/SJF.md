@@ -63,7 +63,8 @@ Finalmente, se invoca `exportSimulationEnd()` para marcar el final de la simulac
 
 ## Referencias a documentación
 
-* [docs/definitions/process.md](../definitions/process.md): Estructura de los procesos y sus campos.
-* [docs/definitions/event-metrics.md](../definitions/event_metrics.md): Definición y uso de los eventos generados durante la simulación.
-* [docs/definitions/common.md](../definitions/common.md): Control y parámetros globales de simulación.
-* [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md): Protocolo general para algoritmos de planificación.
+* Estructura del proceso: [docs/definitions/process.md](../definitions/process.md)
+* Definición de eventos en timeline: [docs/definitions/event-metrics.md](../definitions/event_metrics.md)
+* Control de simulación (SimulationControl): [docs/definitions/common.md](../definitions/common.md)
+* Protocolo para algoritmos de planificación: [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md)
+* Video explicativo de referencia: [ALGORITMO DE PLANIFICACIÓN SJF DE LA CPU PARA LA ASIGNACIÓN DE PROCESOS DEL SISTEMA OPERATIVO](https://www.youtube.com/watch?v=mqLgCn6gazI&t=138s)

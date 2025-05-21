@@ -61,7 +61,8 @@ La simulación termina cuando todos los procesos han sido completados. Al final,
 
 ## Referencias a documentación
 
-* La estructura de un proceso y sus atributos está detallada en [docs/definitions/process.md](../definitions/process.md).
-* La definición y uso de los eventos de timeline se encuentra en [docs/definitions/event-metrics.md](../definitions/event_metrics.md).
-* La estructura y funciones del control de simulación están descritas en [docs/definitions/common.md](../definitions/common.md).
-* Protocolo efectuado para algoritmos de calendarización en [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md).
+* Estructura del proceso: [docs/definitions/process.md](../definitions/process.md)
+* Definición de eventos en timeline: [docs/definitions/event-metrics.md](../definitions/event_metrics.md)
+* Control de simulación (SimulationControl): [docs/definitions/common.md](../definitions/common.md)
+* Protocolo para algoritmos de planificación: [docs/protocols/protocolo\_scheduling.md](../protocols/protocolo_scheduling.md)
+* Video explicativo de referencia: [ALGORITMO DE PLANIFICACIÓN POR PRIORIDADES DE LA CPU PARA LA ASIGNACIÓN DE PROCESOS DEL SO](https://www.youtube.com/watch?v=pc6JPdSUByA)
