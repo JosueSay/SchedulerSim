@@ -62,7 +62,12 @@ function renderGanttTable(events) {
   table.innerHTML = "";
   legend.innerHTML = "";
 
-  const pids = [...new Set(events.map((e) => e.pid))].sort();
+  const pids = [...new Set(events.map((e) => e.pid))].sort((a, b) => {
+    const numA = a.match(/\d+/);
+    const numB = b.match(/\d+/);
+    if (numA && numB) return parseInt(numA[0]) - parseInt(numB[0]);
+    return a.localeCompare(b);
+  });
 
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
@@ -112,7 +117,12 @@ function renderMetricsTable() {
 
   const table = document.getElementById("metrics-table");
   const average = document.getElementById("metrics-average");
-  processMetrics.sort((a, b) => a.pid.localeCompare(b.pid));
+  processMetrics.sort((a, b) => {
+    const numA = a.pid.match(/\d+/);
+    const numB = b.pid.match(/\d+/);
+    if (numA && numB) return parseInt(numA[0]) - parseInt(numB[0]);
+    return a.pid.localeCompare(b.pid);
+  });
 
   table.innerHTML = `
     <thead>
