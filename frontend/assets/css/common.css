@@ -17,13 +17,15 @@ h1 {
     background-color: #3498db;
     color: #fff;
     min-width: 5rem;
-    width: 25rem;
-    padding: 16px 32px;
-    font-size: 2em;
+    width: 15rem;
+    padding: 1rem 0.5rem;
+    font-size: 1.3em;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 .main-button:hover {
