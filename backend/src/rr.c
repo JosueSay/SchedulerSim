@@ -42,26 +42,34 @@ void simulateRR(Process *processes, int processCount,
 
   while (completed < processCount)
   {
-    // Agregar procesos nuevos al queue
+    // Agregar procesos nuevos al queue y registrar NEW
     for (int i = 0; i < processCount; i++)
     {
       if (processes[i].arrivalTime == currentTime && processes[i].state == STATE_NEW)
       {
+        printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
         processes[i].state = STATE_WAITING;
         queue[queueEnd++] = i;
+      }
+    }
+
+    // Registrar WAITING para procesos en cola que no están ejecutando
+    for (int i = queueStart; i < queueEnd; i++)
+    {
+      if (queue[i] != currentProcess)
+      {
+        printEventForProcess(&processes[queue[i]], currentTime, STATE_WAITING, events, eventCount);
       }
     }
 
     // Si no hay proceso actual o se agotó el quantum
     if (currentProcess == -1 || quantumCounter == quantum)
     {
-      // Si el proceso actual aún no ha terminado, reencolarlo
       if (currentProcess != -1 && remainingBurst[currentProcess] > 0)
       {
         queue[queueEnd++] = currentProcess;
       }
 
-      // Obtener siguiente proceso de la cola
       if (queueStart < queueEnd)
       {
         currentProcess = queue[queueStart++];
@@ -74,13 +82,26 @@ void simulateRR(Process *processes, int processCount,
       }
       else
       {
-        currentProcess = -1; // no hay proceso actual
+        currentProcess = -1;
+      }
+    }
+
+    // Espera implícita para procesos activos pero no ejecutando en este ciclo
+    for (int i = 0; i < processCount; i++)
+    {
+      if (i != currentProcess &&
+          processes[i].arrivalTime <= currentTime &&
+          processes[i].startTime != -1 &&
+          processes[i].state != STATE_TERMINATED &&
+          remainingBurst[i] > 0)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
       }
     }
 
     if (currentProcess != -1)
     {
-      // Ejecutar el proceso actual por 1 ciclo
+      // Ejecutar proceso
       printEventForProcess(&processes[currentProcess], currentTime, STATE_ACCESSED, events, eventCount);
       remainingBurst[currentProcess]--;
       quantumCounter++;
@@ -91,6 +112,7 @@ void simulateRR(Process *processes, int processCount,
         processes[currentProcess].waitingTime =
             processes[currentProcess].finishTime - processes[currentProcess].arrivalTime - processes[currentProcess].burstTime;
         processes[currentProcess].state = STATE_TERMINATED;
+        printEventForProcess(&processes[currentProcess], currentTime, STATE_TERMINATED, events, eventCount);
         exportProcessMetric(&processes[currentProcess]);
         completed++;
         currentProcess = -1;
