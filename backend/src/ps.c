@@ -14,24 +14,42 @@ void simulatePS(Process *processes, int processCount,
   int remainingBurst[MAX_PROCESSES];
   *eventCount = 0;
 
+  // Inicializar ráfagas restantes y emitir eventos NEW para procesos con llegada en 0
   for (int i = 0; i < processCount; i++)
   {
     remainingBurst[i] = processes[i].burstTime;
+    if (processes[i].arrivalTime == 0)
+    {
+      printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+    }
   }
 
   while (completed < processCount)
   {
-    int highestPriority = INT_MAX;
+    // Registrar procesos que acaban de llegar (NEW)
+    for (int i = 0; i < processCount; i++)
+    {
+      if (processes[i].arrivalTime == currentTime)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+      }
+    }
+
     int selectedIdx = -1;
 
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime <= currentTime && processes[i].state != STATE_TERMINATED && remainingBurst[i] > 0)
+      if (processes[i].arrivalTime <= currentTime &&
+          processes[i].state != STATE_TERMINATED &&
+          remainingBurst[i] > 0)
       {
-        if (processes[i].priority < highestPriority ||
-            (processes[i].priority == highestPriority && processes[i].arrivalTime < processes[selectedIdx].arrivalTime))
+        if (selectedIdx == -1 ||
+            processes[i].priority < processes[selectedIdx].priority ||
+            (processes[i].priority == processes[selectedIdx].priority &&
+             (processes[i].arrivalTime < processes[selectedIdx].arrivalTime ||
+              (processes[i].arrivalTime == processes[selectedIdx].arrivalTime &&
+               processes[i].burstTime < processes[selectedIdx].burstTime))))
         {
-          highestPriority = processes[i].priority;
           selectedIdx = i;
         }
       }
@@ -44,25 +62,31 @@ void simulatePS(Process *processes, int processCount,
       continue;
     }
 
+    // Registrar WAITING para todos los demás procesos activos
+    for (int i = 0; i < processCount; i++)
+    {
+      if (i != selectedIdx &&
+          processes[i].arrivalTime <= currentTime &&
+          processes[i].state != STATE_TERMINATED &&
+          remainingBurst[i] > 0)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+      }
+    }
+
     Process *p = &processes[selectedIdx];
+
     if (p->startTime == -1)
     {
       p->startTime = currentTime;
     }
 
-    snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
-    events[*eventCount].startCycle = currentTime;
-    events[*eventCount].state = STATE_ACCESSED;
-
     if (isPreemptive)
     {
-      // Ejecuta 1 ciclo (modo preventivo)
+      // Ejecuta 1 ciclo
+      printEventForProcess(p, currentTime, STATE_ACCESSED, events, eventCount);
       currentTime++;
       remainingBurst[selectedIdx]--;
-
-      events[*eventCount].endCycle = currentTime;
-      exportEventRealtime(&events[*eventCount]);
-      (*eventCount)++;
       usleep(SIMULATION_DELAY_US);
 
       if (remainingBurst[selectedIdx] == 0)
@@ -70,23 +94,39 @@ void simulatePS(Process *processes, int processCount,
         p->finishTime = currentTime;
         p->waitingTime = p->finishTime - p->arrivalTime - p->burstTime;
         p->state = STATE_TERMINATED;
+        printEventForProcess(p, currentTime - 1, STATE_TERMINATED, events, eventCount);
         exportProcessMetric(p);
         completed++;
       }
     }
-
     else
     {
-      // Ejecuta completamente (modo no preventivo)
+      // Ejecutar hasta terminar (no preventivo)
       for (int c = 0; c < remainingBurst[selectedIdx]; c++)
       {
-        snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
-        events[*eventCount].startCycle = currentTime;
-        events[*eventCount].endCycle = currentTime + 1;
-        events[*eventCount].state = STATE_ACCESSED;
+        // Verificar si algún proceso llega justo en este ciclo
+        for (int i = 0; i < processCount; i++)
+        {
+          if (processes[i].arrivalTime == currentTime)
+          {
+            printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+          }
+        }
 
-        exportEventRealtime(&events[*eventCount]);
-        (*eventCount)++;
+        // Registrar WAITING para otros procesos en este ciclo
+        for (int i = 0; i < processCount; i++)
+        {
+          if (i != selectedIdx &&
+              processes[i].arrivalTime <= currentTime &&
+              processes[i].state != STATE_TERMINATED &&
+              remainingBurst[i] > 0)
+          {
+            printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+          }
+        }
+
+        // Ejecutar proceso actual
+        printEventForProcess(p, currentTime, STATE_ACCESSED, events, eventCount);
         currentTime++;
         usleep(SIMULATION_DELAY_US);
       }
@@ -94,12 +134,11 @@ void simulatePS(Process *processes, int processCount,
       p->finishTime = currentTime;
       p->waitingTime = p->finishTime - p->arrivalTime - p->burstTime;
       p->state = STATE_TERMINATED;
+      printEventForProcess(p, currentTime - 1, STATE_TERMINATED, events, eventCount);
       exportProcessMetric(p);
       completed++;
       remainingBurst[selectedIdx] = 0;
     }
-
-    exportEventRealtime(&events[*eventCount - 1]);
   }
 
   exportSimulationEnd();
