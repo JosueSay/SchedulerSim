@@ -44,18 +44,12 @@ void readConfigFromStdin(SimulationControl *control)
 
     if (cJSON_IsString(alg) && alg->valuestring)
       control->config.algorithm = parseAlgorithm(alg->valuestring);
-    else
-      control->config.algorithm = ALGO_FIFO;
 
     if (cJSON_IsNumber(quant))
       control->config.quantum = quant->valueint;
-    else
-      control->config.quantum = 0;
 
     if (cJSON_IsNumber(preempt))
       control->config.isPreemptive = preempt->valueint;
-    else
-      control->config.isPreemptive = 0;
 
     printf("Algoritmo: %s | Quantum: %d | Preemptivo: %s\n",
            alg && alg->valuestring ? alg->valuestring : "(none)",
@@ -63,13 +57,6 @@ void readConfigFromStdin(SimulationControl *control)
            control->config.isPreemptive ? "Sí" : "No");
 
     cJSON_Delete(json);
-  }
-  else
-  {
-    // Default a FIFO si no se recibe nada
-    control->config.algorithm = ALGO_FIFO;
-    control->config.quantum = 0;
-    control->config.isPreemptive = 0;
   }
 }
 
@@ -120,12 +107,12 @@ int main()
   }
 
   SimulationMetrics metrics = calculateMetrics(processes, processCount);
+  printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
+  fflush(stdout);
   // exportMetrics("../data/output/metrics.txt", metrics);
   // exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
 
   exportSimulationEnd();
-  printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
-  fflush(stdout);
 
   return 0;
 }
