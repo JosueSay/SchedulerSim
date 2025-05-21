@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 /**
  * Simula la planificación FIFO (First In, First Out) para un conjunto de procesos.
@@ -30,67 +31,84 @@ void simulateFIFO(Process *processes, int processCount,
                   SimulationControl *control)
 {
   int currentTime = 0;
+  int completed = 0;
+  int executing = -1; // índice del proceso actual
+  int remainingBurst[MAX_PROCESSES];
   *eventCount = 0;
 
-  // Ordenar por arrivalTime
-  for (int i = 0; i < processCount - 1; i++)
+  for (int i = 0; i < processCount; i++)
   {
-    for (int j = i + 1; j < processCount; j++)
+    remainingBurst[i] = processes[i].burstTime;
+    processes[i].startTime = -1;
+  }
+
+  while (completed < processCount)
+  {
+    // Marcar procesos que acaban de llegar
+    for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime > processes[j].arrivalTime)
+      if (processes[i].arrivalTime == currentTime)
       {
-        Process temp = processes[i];
-        processes[i] = processes[j];
-        processes[j] = temp;
+        printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
       }
     }
-  }
 
-  // Inicializar NEW en su ciclo de llegada para todos los procesos
-  for (int i = 0; i < processCount; i++)
-  {
-    printEventForProcess(&processes[i], processes[i].arrivalTime, STATE_NEW, events, eventCount);
-  }
-
-  for (int i = 0; i < processCount; i++)
-  {
-    // Si el proceso aún no ha llegado, avanza el tiempo registrando espera para otros
-    while (currentTime < processes[i].arrivalTime)
+    // Si no hay proceso en ejecución, buscar el siguiente según orden FIFO
+    if (executing == -1)
     {
-      for (int j = 0; j < processCount; j++)
+      int minArrival = INT_MAX;
+      for (int i = 0; i < processCount; i++)
       {
-        if (j != i &&
-            processes[j].arrivalTime <= currentTime &&
-            processes[j].startTime == -1)
+        if (processes[i].state != STATE_TERMINATED &&
+            processes[i].startTime == -1 &&
+            processes[i].arrivalTime <= currentTime)
         {
-          printEventForProcess(&processes[j], currentTime, STATE_WAITING, events, eventCount);
+          if (processes[i].arrivalTime < minArrival)
+          {
+            minArrival = processes[i].arrivalTime;
+            executing = i;
+          }
         }
       }
-      currentTime++;
+
+      if (executing != -1 && processes[executing].startTime == -1)
+      {
+        processes[executing].startTime = currentTime;
+      }
     }
 
-    // Empieza ejecución
-    processes[i].startTime = currentTime;
-    processes[i].finishTime = currentTime + processes[i].burstTime;
-    processes[i].waitingTime = processes[i].startTime - processes[i].arrivalTime;
-
-    // Si el proceso ya estaba esperando (llegó antes de currentTime), registramos esos ciclos como WAITING
-    for (int w = processes[i].arrivalTime; w < processes[i].startTime; w++)
+    // Registrar WAITING para los demás procesos activos
+    for (int i = 0; i < processCount; i++)
     {
-      printEventForProcess(&processes[i], w, STATE_WAITING, events, eventCount);
+      if (i != executing &&
+          processes[i].arrivalTime <= currentTime &&
+          processes[i].state != STATE_TERMINATED &&
+          remainingBurst[i] > 0)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+      }
     }
 
-    // Ciclos de ejecución
-    for (int c = 0; c < processes[i].burstTime; c++)
+    if (executing != -1)
     {
-      printEventForProcess(&processes[i], currentTime, STATE_ACCESSED, events, eventCount);
-      currentTime++;
-      usleep(SIMULATION_DELAY_US);
+      printEventForProcess(&processes[executing], currentTime, STATE_ACCESSED, events, eventCount);
+      remainingBurst[executing]--;
+
+      if (remainingBurst[executing] == 0)
+      {
+        processes[executing].finishTime = currentTime + 1;
+        processes[executing].waitingTime =
+            processes[executing].finishTime - processes[executing].arrivalTime - processes[executing].burstTime;
+        processes[executing].state = STATE_TERMINATED;
+        printEventForProcess(&processes[executing], currentTime, STATE_TERMINATED, events, eventCount);
+        exportProcessMetric(&processes[executing]);
+        completed++;
+        executing = -1; // liberar CPU
+      }
     }
 
-    processes[i].state = STATE_TERMINATED;
-    printEventForProcess(&processes[i], currentTime - 1, STATE_TERMINATED, events, eventCount);
-    exportProcessMetric(&processes[i]);
+    currentTime++;
+    usleep(SIMULATION_DELAY_US);
   }
 
   exportSimulationEnd();

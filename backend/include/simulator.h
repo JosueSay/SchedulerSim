@@ -9,7 +9,7 @@
 #define COMMON_MAX_LEN 10
 #define MAX_PROCESSES 100
 #define MAX_EVENTS 500
-#define SIMULATION_DELAY_US 100000
+#define SIMULATION_DELAY_US 1000000
 
 /**
  * Enumeración de Algoritmos de Calendarización

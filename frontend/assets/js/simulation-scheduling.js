@@ -62,7 +62,8 @@ function renderGanttTable(events) {
   table.innerHTML = "";
   legend.innerHTML = "";
 
-  const pids = [...new Set(events.map((e) => e.pid))];
+  const pids = [...new Set(events.map((e) => e.pid))].sort();
+
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
   // Construye la leyenda mostrando el color asignado a cada proceso (usando color de estado NEW)
@@ -111,6 +112,7 @@ function renderMetricsTable() {
 
   const table = document.getElementById("metrics-table");
   const average = document.getElementById("metrics-average");
+  processMetrics.sort((a, b) => a.pid.localeCompare(b.pid));
 
   table.innerHTML = `
     <thead>
@@ -125,9 +127,9 @@ function renderMetricsTable() {
       </tr>
     </thead>
     <tbody>
-      ${processMetrics
-        .map(
-          (p) => `
+    ${processMetrics
+      .map(
+        (p) => `
         <tr>
           <td>${p.pid}</td>
           <td>${p.arrivalTime}</td>
@@ -138,8 +140,8 @@ function renderMetricsTable() {
           <td>${p.waitingTime}</td>
         </tr>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </tbody>
   `;
 
