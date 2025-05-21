@@ -1,5 +1,8 @@
 const cycleCounter = document.getElementById("cycle-counter");
 const simulationStatus = document.getElementById("simulation-status");
+let sortGanttByPID = false; // false = orden original
+let currentSortField = "";
+let sortAscending = true;
 
 const processColors = {};
 let colorIndex = 0;
@@ -61,13 +64,15 @@ function renderGanttTable(events) {
   // Limpia cualquier contenido previo en la tabla y la leyenda
   table.innerHTML = "";
   legend.innerHTML = "";
-
-  const pids = [...new Set(events.map((e) => e.pid))].sort((a, b) => {
-    const numA = a.match(/\d+/);
-    const numB = b.match(/\d+/);
-    if (numA && numB) return parseInt(numA[0]) - parseInt(numB[0]);
-    return a.localeCompare(b);
-  });
+  let pids = [...new Set(events.map((e) => e.pid))];
+  if (sortGanttByPID) {
+    pids.sort((a, b) => {
+      const numA = a.match(/\d+/);
+      const numB = b.match(/\d+/);
+      if (numA && numB) return parseInt(numA[0]) - parseInt(numB[0]);
+      return a.localeCompare(b);
+    });
+  }
 
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
@@ -117,12 +122,6 @@ function renderMetricsTable() {
 
   const table = document.getElementById("metrics-table");
   const average = document.getElementById("metrics-average");
-  processMetrics.sort((a, b) => {
-    const numA = a.pid.match(/\d+/);
-    const numB = b.pid.match(/\d+/);
-    if (numA && numB) return parseInt(numA[0]) - parseInt(numB[0]);
-    return a.pid.localeCompare(b.pid);
-  });
 
   table.innerHTML = `
     <thead>
@@ -298,7 +297,7 @@ function downloadScreenshot() {
       windowHeight: document.body.scrollHeight,
     }).then((canvas) => {
       const link = document.createElement("a");
-      link.download = "simulacion_gantt.png";
+      link.download = "simulacion_scheduling.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
 
@@ -308,4 +307,30 @@ function downloadScreenshot() {
       metricsScroll.style.cssText = originalMetricsStyle;
     });
   }, 100);
+}
+
+function toggleGanttOrder() {
+  sortGanttByPID = !sortGanttByPID;
+  renderGanttTable(events); // volver a renderizar
+}
+
+function sortMetrics(field) {
+  if (currentSortField === field) {
+    sortAscending = !sortAscending;
+  } else {
+    currentSortField = field;
+    sortAscending = true;
+  }
+
+  processMetrics.sort((a, b) => {
+    if (typeof a[field] === "string") {
+      return sortAscending
+        ? a[field].localeCompare(b[field])
+        : b[field].localeCompare(a[field]);
+    } else {
+      return sortAscending ? a[field] - b[field] : b[field] - a[field];
+    }
+  });
+
+  renderMetricsTable();
 }

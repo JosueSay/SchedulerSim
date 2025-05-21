@@ -30,6 +30,11 @@
           <table id="gantt-table"></table>
         </div>
         <div class="legend" id="gantt-legend"></div>
+        <div id="gantt-order-btn" style="text-align: center; margin: 1.5rem 0">
+          <button class="secondary-button" onclick="toggleGanttOrder()">
+            Ordenar por PID
+          </button>
+        </div>
       </div>
 
       <!-- Métricas -->
@@ -38,6 +43,30 @@
         <div id="metrics-scroll">
           <table id="metrics-table" class="metrics-table"></table>
         </div>
+        <div class="metrics-sort-buttons">
+          <button class="secondary-button" onclick="sortMetrics('pid')">
+            Ordenar por PID
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('arrivalTime')">
+            Ordenar por AT
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('burstTime')">
+            Ordenar por BT
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('priority')">
+            Ordenar por Priority
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('startTime')">
+            Ordenar por Start
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('endTime')">
+            Ordenar por End
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('waitingTime')">
+            Ordenar por Waiting
+          </button>
+        </div>
+
         <div id="metrics-average" class="cycle-counter"></div>
       </div>
     </div>
