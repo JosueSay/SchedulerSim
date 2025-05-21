@@ -26,14 +26,33 @@ void simulateSJF(Process *processes, int processCount,
   int completed = 0;
   *eventCount = 0;
 
+  // Emitir NEW si llegaron en tiempo 0
+  for (int i = 0; i < processCount; i++)
+  {
+    if (processes[i].arrivalTime == 0)
+    {
+      printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+    }
+  }
+
   while (completed < processCount)
   {
-    int shortestIdx = -1;
-
-    // Buscar el proceso con menor burstTime que haya llegado y no se haya ejecutado
+    // Registrar procesos que llegan justo en este ciclo
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime <= currentTime && processes[i].state == STATE_NEW)
+      if (processes[i].arrivalTime == currentTime)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+      }
+    }
+
+    int shortestIdx = -1;
+
+    // Buscar proceso con menor burst que ya haya llegado y no haya terminado
+    for (int i = 0; i < processCount; i++)
+    {
+      if (processes[i].arrivalTime <= currentTime &&
+          processes[i].state != STATE_TERMINATED)
       {
         if (shortestIdx == -1 || processes[i].burstTime < processes[shortestIdx].burstTime)
         {
@@ -42,7 +61,7 @@ void simulateSJF(Process *processes, int processCount,
       }
     }
 
-    // Si no hay procesos listos, avanzar el tiempo
+    // No hay procesos listos aún
     if (shortestIdx == -1)
     {
       currentTime++;
@@ -54,24 +73,39 @@ void simulateSJF(Process *processes, int processCount,
     p->startTime = currentTime;
     p->finishTime = currentTime + p->burstTime;
     p->waitingTime = p->startTime - p->arrivalTime;
-    p->state = STATE_TERMINATED;
 
-    // Simular ejecución del proceso ciclo por ciclo
+    // Ejecutar el proceso ciclo por ciclo
     for (int c = 0; c < p->burstTime; c++)
     {
-      snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
-      events[*eventCount].startCycle = currentTime;
-      events[*eventCount].endCycle = currentTime + 1;
-      events[*eventCount].state = STATE_ACCESSED;
+      // Registrar procesos en WAITING
+      for (int i = 0; i < processCount; i++)
+      {
+        if (i != shortestIdx &&
+            processes[i].arrivalTime <= currentTime &&
+            processes[i].state != STATE_TERMINATED)
+        {
+          printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+        }
+      }
 
-      exportEventRealtime(&events[*eventCount]);
-
-      (*eventCount)++;
+      // Ejecutar proceso actual
+      printEventForProcess(p, currentTime, STATE_ACCESSED, events, eventCount);
       currentTime++;
-
       usleep(SIMULATION_DELAY_US);
+
+      // Registrar procesos que llegan justo ahora
+      for (int i = 0; i < processCount; i++)
+      {
+        if (processes[i].arrivalTime == currentTime)
+        {
+          printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+        }
+      }
     }
 
+    // Termina el proceso
+    p->state = STATE_TERMINATED;
+    printEventForProcess(p, currentTime - 1, STATE_TERMINATED, events, eventCount);
     exportProcessMetric(p);
     completed++;
   }
