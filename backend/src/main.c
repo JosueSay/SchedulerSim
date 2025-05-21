@@ -3,6 +3,7 @@
 #include "sjf.h"
 #include "rr.h"
 #include "ps.h"
+#include "srt.h"
 #include <stdio.h>
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -109,6 +110,9 @@ int main()
     break;
   case ALGO_PRIORITY:
     simulatePS(processes, processCount, timelineEvents, &eventCount, &control);
+    break;
+  case ALGO_SRT:
+    simulateSRT(processes, processCount, timelineEvents, &eventCount, &control);
     break;
   default:
     printf("Algoritmo no soportado.\n");
