@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 /**
- * Simula la planificación FIFO (First In, First Out) en tiempo real para un conjunto de procesos.
+ * Simula la planificación FIFO (First In, First Out) para un conjunto de procesos.
  *
  * @param processes    Arreglo de procesos a simular.
  * @param processCount Número de procesos en el arreglo.
@@ -12,9 +12,18 @@
  * @param eventCount   Puntero a entero donde se actualizará el conteo de eventos generados.
  * @param control      Puntero a estructura de control de simulación para actualizar estado y ciclos (puede ser NULL).
  *
- * Esta función ordena los procesos por tiempo de llegada, simula su ejecución uno a uno,
- * registra eventos ciclo a ciclo con retardo para simular tiempo real (usleep),
- * exporta eventos en formato JSON y al final actualiza el control de simulación.
+ * Esta función ejecuta una simulación del algoritmo FIFO, que procesa los trabajos en orden
+ * estrictamente según su tiempo de llegada (arrivalTime). Los procesos se ordenan previamente
+ * para asegurar este orden.
+ *
+ * La simulación registra eventos en cada ciclo temporal, reflejando los estados:
+ * - NEW: cuando un proceso llega.
+ * - WAITING: cuando un proceso está listo pero esperando su turno.
+ * - ACCESSED: cuando un proceso está en ejecución.
+ * - TERMINATED: cuando un proceso termina su ráfaga.
+ *
+ * Entre ciclos se utiliza un retardo (usleep) para simular el paso del tiempo en tiempo real.
+ * Finalmente, se exportan las métricas de cada proceso y se indica el fin de la simulación.
  */
 void simulateFIFO(Process *processes, int processCount,
                   TimelineEvent *events, int *eventCount,

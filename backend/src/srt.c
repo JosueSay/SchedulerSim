@@ -4,6 +4,28 @@
 #include <unistd.h>
 #include <limits.h>
 
+/**
+ * Simula la planificación SRT (Shortest Remaining Time) en tiempo real para un conjunto de procesos.
+ *
+ * @param processes     Arreglo de procesos a simular.
+ * @param processCount  Número total de procesos en el arreglo.
+ * @param events        Arreglo para registrar eventos de ejecución (TimelineEvent).
+ * @param eventCount    Puntero a entero donde se almacenará la cantidad de eventos generados.
+ * @param control       Puntero a estructura de control de simulación (puede ser NULL si no se utiliza).
+ *
+ * Esta función implementa el algoritmo SRT, una versión con desalojo del algoritmo SJF, donde
+ * en cada ciclo se elige el proceso con el menor tiempo restante de ejecución.
+ * La simulación avanza ciclo a ciclo, registrando eventos de llegada, espera, ejecución y finalización.
+ *
+ * Características:
+ * - Se simula segundo a segundo con `usleep` para imitar tiempo real.
+ * - Registra eventos de tipo NEW cuando un proceso llega.
+ * - Selecciona en cada ciclo el proceso con el menor tiempo restante (que haya llegado).
+ * - Si no hay proceso ejecutable, simplemente avanza el tiempo.
+ * - Actualiza los estados de los procesos y exporta métricas al final de su ejecución.
+ * - Se consideran eventos de espera (WAITING) para procesos activos que no están ejecutando.
+ * - Al completar todos los procesos, exporta el fin de la simulación.
+ */
 void simulateSRT(Process *processes, int processCount,
                  TimelineEvent *events, int *eventCount,
                  SimulationControl *control)
@@ -17,10 +39,24 @@ void simulateSRT(Process *processes, int processCount,
   {
     remainingTime[i] = processes[i].burstTime;
     processes[i].startTime = -1;
+
+    if (processes[i].arrivalTime == 0)
+    {
+      printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+    }
   }
 
   while (completed < processCount)
   {
+    // Registrar procesos que acaban de llegar
+    for (int i = 0; i < processCount; i++)
+    {
+      if (processes[i].arrivalTime == currentTime)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+      }
+    }
+
     int shortestIdx = -1;
     int minRemaining = INT_MAX;
 
@@ -43,26 +79,36 @@ void simulateSRT(Process *processes, int processCount,
       continue;
     }
 
+    // Registrar estados de espera para los otros procesos activos
+    for (int i = 0; i < processCount; i++)
+    {
+      if (i != shortestIdx &&
+          processes[i].arrivalTime <= currentTime &&
+          processes[i].state != STATE_TERMINATED &&
+          remainingTime[i] > 0)
+      {
+        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+      }
+    }
+
     Process *p = &processes[shortestIdx];
+
     if (p->startTime == -1)
       p->startTime = currentTime;
 
     // Ejecutar 1 ciclo
-    snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
-    events[*eventCount].startCycle = currentTime;
-    events[*eventCount].endCycle = currentTime + 1;
-    events[*eventCount].state = STATE_ACCESSED;
-    exportEventRealtime(&events[*eventCount]);
-    (*eventCount)++;
+    printEventForProcess(p, currentTime, STATE_ACCESSED, events, eventCount);
     currentTime++;
     remainingTime[shortestIdx]--;
     usleep(SIMULATION_DELAY_US);
 
+    // Si termina
     if (remainingTime[shortestIdx] == 0)
     {
       p->finishTime = currentTime;
       p->waitingTime = p->finishTime - p->arrivalTime - p->burstTime;
       p->state = STATE_TERMINATED;
+      printEventForProcess(p, currentTime - 1, STATE_TERMINATED, events, eventCount);
       exportProcessMetric(p);
       completed++;
     }

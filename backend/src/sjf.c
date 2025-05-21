@@ -13,10 +13,19 @@
  * @param eventCount   Puntero a entero donde se actualizará el conteo de eventos generados.
  * @param control      Puntero a estructura de control de simulación (puede ser NULL).
  *
- * Esta función selecciona el proceso con el menor tiempo de ráfaga (burst time) entre los que ya han llegado
- * y lo ejecuta completamente antes de seleccionar el siguiente. Cada ejecución se simula ciclo a ciclo,
- * se exportan eventos en tiempo real y se generan métricas por proceso.
- * Se introduce un retardo con `usleep` para simular tiempo real.
+ * Esta función implementa la planificación SJF no expropiativa, donde en cada ciclo se selecciona el proceso
+ * con el menor tiempo de ráfaga (burstTime) entre los que han llegado y aún no han terminado.
+ *
+ * Una vez seleccionado, el proceso se ejecuta completamente sin ser interrumpido. Durante su ejecución:
+ *  - Se registran los eventos de espera (STATE_WAITING) para los demás procesos que ya llegaron.
+ *  - Se registran los eventos de acceso (STATE_ACCESSED) ciclo a ciclo para el proceso en ejecución.
+ *  - Se detectan nuevos procesos que llegan y se marcan como STATE_NEW en su ciclo exacto de llegada.
+ *
+ * Al finalizar la ejecución de un proceso, se actualiza su tiempo de finalización, tiempo de espera,
+ * se marca como terminado (STATE_TERMINATED) y se exportan sus métricas.
+ *
+ * Se introduce un retardo artificial con `usleep` para simular ejecución en tiempo real y generar
+ * una traza animada de la planificación. Al finalizar todos los procesos, se exporta el fin de simulación.
  */
 void simulateSJF(Process *processes, int processCount,
                  TimelineEvent *events, int *eventCount,

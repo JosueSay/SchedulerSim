@@ -12,12 +12,22 @@
  * @param eventCount   Puntero a entero donde se actualizará el conteo de eventos generados.
  * @param control      Puntero a estructura de control de simulación con parámetros como el quantum.
  *
- * Esta función simula la ejecución de procesos en un esquema Round Robin,
- * considerando el tiempo de llegada y un quantum fijo. Los procesos se encolan
- * conforme van llegando y se les asigna CPU por turnos de longitud máxima igual al quantum.
+ * Esta función implementa la planificación Round Robin, que asigna tiempo de CPU a los procesos
+ * por turnos de duración fija (quantum), en orden de llegada. El algoritmo considera el tiempo de
+ * llegada de cada proceso, y los coloca en una cola a medida que van llegando.
  *
- * Durante la ejecución, se registran eventos ciclo a ciclo para su visualización en tiempo real.
- * Se exportan los eventos y métricas individuales de cada proceso, y se finaliza con una marca de fin de simulación.
+ * En cada ciclo de reloj:
+ *  - Se agregan nuevos procesos a la cola si han llegado en ese tiempo.
+ *  - Se registra el estado de espera (STATE_WAITING) para los procesos en cola que no están ejecutando.
+ *  - Se ejecuta el proceso en turno por hasta `quantum` ciclos o hasta que termine su ráfaga.
+ *  - Si el proceso no termina dentro del quantum, se reencola al final.
+ *
+ * Durante la simulación:
+ *  - Se generan eventos STATE_NEW, STATE_WAITING, STATE_ACCESSED y STATE_TERMINATED.
+ *  - Se actualizan métricas como tiempo de inicio, finalización y espera.
+ *  - Se introduce una pausa con `usleep` para simular el paso del tiempo.
+ *
+ * Una vez que todos los procesos han terminado, se exporta el fin de la simulación.
  */
 void simulateRR(Process *processes, int processCount,
                 TimelineEvent *events, int *eventCount,
