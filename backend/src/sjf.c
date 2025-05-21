@@ -59,7 +59,7 @@ void simulateSJF(Process *processes, int processCount,
     // Simular ejecución del proceso ciclo por ciclo
     for (int c = 0; c < p->burstTime; c++)
     {
-      snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", p->pid);
+      snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
       events[*eventCount].startCycle = currentTime;
       events[*eventCount].endCycle = currentTime + 1;
       events[*eventCount].state = STATE_ACCESSED;

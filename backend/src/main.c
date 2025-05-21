@@ -120,7 +120,8 @@ int main()
   }
 
   SimulationMetrics metrics = calculateMetrics(processes, processCount);
-  exportMetrics("../data/output/metrics.txt", metrics);
+  // exportMetrics("../data/output/metrics.txt", metrics);
+  // exportTimelineEvents("../data/output/timeline.txt", timelineEvents, eventCount);
 
   exportSimulationEnd();
   printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);

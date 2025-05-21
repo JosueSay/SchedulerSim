@@ -102,6 +102,13 @@ async def websocketSimulationScheduling(websocket: WebSocket):
         configData = await websocket.receive_text()
         config = json.loads(configData)
 
+        # Crear directorio output si no existe
+        os.makedirs(DATA_OUTPUT_DIR, exist_ok=True)
+
+        # Abrir archivo para escribir log
+        log_path = os.path.join(DATA_OUTPUT_DIR, "scheduling_simulator.log")
+        log_file = open(log_path, "w", encoding="utf-8")
+
         process = await asyncio.create_subprocess_exec(
             "../backend/bin/scheduling-simulator",
             stdin=asyncio.subprocess.PIPE,
@@ -123,14 +130,21 @@ async def websocketSimulationScheduling(websocket: WebSocket):
                 break
 
             decodedLine = line.decode().strip()
-            print("[BINARIO STDOUT]", decodedLine) # Debugging
+            
+            # [LOGS]
+            log_file.write("[STDOUT] " + decodedLine + "\n")
             try:
                 eventData = json.loads(decodedLine)
                 if websocket.client_state.value == 1:
                     await websocket.send_text(json.dumps(eventData))
             except json.JSONDecodeError:
                 continue
-
+            
+        # [LOGS]
+        stderr_output = await process.stderr.read()
+        if stderr_output:
+            log_file.write("[STDERR] " + stderr_output.decode() + "\n")
+            
         if websocket.client_state.value == 1:
             await websocket.send_text(json.dumps({"event": "SIMULATION_END"}))
 

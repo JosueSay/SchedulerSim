@@ -81,13 +81,7 @@ void simulateRR(Process *processes, int processCount,
     if (currentProcess != -1)
     {
       // Ejecutar el proceso actual por 1 ciclo
-      snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", processes[currentProcess].pid);
-      events[*eventCount].startCycle = currentTime;
-      events[*eventCount].endCycle = currentTime + 1;
-      events[*eventCount].state = STATE_ACCESSED;
-      exportEventRealtime(&events[*eventCount]);
-      (*eventCount)++;
-
+      printEventForProcess(&processes[currentProcess], currentTime, STATE_ACCESSED, events, eventCount);
       remainingBurst[currentProcess]--;
       quantumCounter++;
 

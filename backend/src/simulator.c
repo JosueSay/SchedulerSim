@@ -1,6 +1,7 @@
 #include "simulator.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /**
  * Devuelve el nombre en cadena del estado de un proceso dado su enum.
@@ -236,6 +237,7 @@ void exportTimelineEvents(const char *filename, TimelineEvent *events, int event
 
   fclose(file);
 }
+
 /**
  * Exporta las métricas de simulación a un archivo de texto.
  * Se escriben las métricas promedio de espera, turnaround y respuesta.
@@ -280,6 +282,21 @@ void exportProcessMetric(const Process *p)
   fflush(stdout);
 }
 
+/**
+ * Exporta un evento de la línea de tiempo en formato JSON en tiempo real.
+ *
+ * Esta función imprime en la salida estándar un objeto JSON que representa
+ * un evento de estado de un proceso durante la simulación. El evento incluye:
+ * - Identificador del proceso (pid)
+ * - Ciclo de inicio (startCycle)
+ * - Ciclo de fin (endCycle)
+ * - Estado del proceso en texto legible (state)
+ *
+ * La salida se imprime inmediatamente usando `fflush` para asegurar que
+ * los datos estén disponibles para sistemas que lean en tiempo real.
+ *
+ * @param event Puntero al evento de la línea de tiempo (`TimelineEvent`) a exportar.
+ */
 void exportEventRealtime(TimelineEvent *event)
 {
   printf("{\"pid\": \"%s\", \"startCycle\": %d, \"endCycle\": %d, \"state\": \"%s\"}\n",
@@ -290,8 +307,41 @@ void exportEventRealtime(TimelineEvent *event)
   fflush(stdout);
 }
 
+/**
+ * Indica la finalización de la simulación mediante un mensaje JSON.
+ *
+ * Esta función imprime en la salida estándar un mensaje JSON con la etiqueta
+ * `"SIMULATION_END"` para señalar que la simulación ha concluido.
+ * También utiliza `fflush` para garantizar que el mensaje sea enviado inmediatamente.
+ */
 void exportSimulationEnd()
 {
   printf("{\"event\": \"SIMULATION_END\"}\n");
   fflush(stdout);
+}
+
+/**
+ * Registra un evento en la línea de tiempo para un proceso específico en un instante dado.
+ *
+ * Esta función crea un evento temporal que representa un cambio de estado del proceso
+ * en el ciclo actual (`currentTime`). El evento se guarda en el arreglo `events` en la posición indicada por `*eventCount`,
+ * luego se exporta en tiempo real mediante `exportEventRealtime` y finalmente se incrementa el contador de eventos.
+ *
+ * El evento registrado cubre un ciclo desde `currentTime` hasta `currentTime + 1`.
+ *
+ * @param process Puntero al proceso (`Process`) para el cual se registra el evento.
+ * @param currentTime Tiempo actual del ciclo en la simulación.
+ * @param state Estado del proceso (`ProcessState`) que se quiere registrar en el evento.
+ * @param events Arreglo donde se almacenan los eventos de la línea de tiempo (`TimelineEvent`).
+ * @param eventCount Puntero a un entero que indica la cantidad actual de eventos almacenados en `events`.
+ *                   Se incrementa en 1 luego de agregar el nuevo evento.
+ */
+void printEventForProcess(Process *process, int currentTime, ProcessState state, TimelineEvent *events, int *eventCount)
+{
+  snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", process->pid);
+  events[*eventCount].startCycle = currentTime;
+  events[*eventCount].endCycle = currentTime + 1;
+  events[*eventCount].state = state;
+  exportEventRealtime(&events[*eventCount]);
+  (*eventCount)++;
 }

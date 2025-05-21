@@ -48,7 +48,7 @@ void simulateSRT(Process *processes, int processCount,
       p->startTime = currentTime;
 
     // Ejecutar 1 ciclo
-    snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", p->pid);
+    snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
     events[*eventCount].startCycle = currentTime;
     events[*eventCount].endCycle = currentTime + 1;
     events[*eventCount].state = STATE_ACCESSED;

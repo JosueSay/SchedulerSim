@@ -50,7 +50,7 @@ void simulatePS(Process *processes, int processCount,
       p->startTime = currentTime;
     }
 
-    snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", p->pid);
+    snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
     events[*eventCount].startCycle = currentTime;
     events[*eventCount].state = STATE_ACCESSED;
 
@@ -80,7 +80,7 @@ void simulatePS(Process *processes, int processCount,
       // Ejecuta completamente (modo no preventivo)
       for (int c = 0; c < remainingBurst[selectedIdx]; c++)
       {
-        snprintf(events[*eventCount].pid, PID_MAX_LEN, "%s", p->pid);
+        snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", p->pid);
         events[*eventCount].startCycle = currentTime;
         events[*eventCount].endCycle = currentTime + 1;
         events[*eventCount].state = STATE_ACCESSED;

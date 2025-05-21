@@ -6,8 +6,7 @@
 /**
  * Definiciones de tamaños estándar
  */
-#define PID_MAX_LEN 10
-#define RESOURCE_NAME_MAX_LEN 10
+#define COMMON_MAX_LEN 10
 #define MAX_PROCESSES 100
 #define MAX_EVENTS 500
 #define SIMULATION_DELAY_US 100000
@@ -36,7 +35,7 @@ typedef struct
 } SimulationConfig;
 
 /**
- * Estructura de Control de Simulación
+ * Estructura de Control de Simulación (posible implementación para controlar timeline de eventos)
  */
 typedef struct
 {
@@ -59,7 +58,7 @@ typedef enum
  */
 typedef struct
 {
-  char pid[PID_MAX_LEN];
+  char pid[COMMON_MAX_LEN];
   int burstTime;
   int arrivalTime;
   int priority;
@@ -77,7 +76,7 @@ typedef struct
  */
 typedef struct
 {
-  char name[RESOURCE_NAME_MAX_LEN];
+  char name[COMMON_MAX_LEN];
   int counter;
   int isLocked; // 0: libre, 1: bloqueado (para sincronización)
 } Resource;
@@ -93,9 +92,9 @@ typedef enum
  */
 typedef struct
 {
-  char pid[PID_MAX_LEN];
+  char pid[COMMON_MAX_LEN];
   ActionType action;
-  char resourceName[RESOURCE_NAME_MAX_LEN];
+  char resourceName[COMMON_MAX_LEN];
   int cycle;
 } Action;
 
@@ -104,7 +103,7 @@ typedef struct
  */
 typedef struct
 {
-  char pid[PID_MAX_LEN];
+  char pid[COMMON_MAX_LEN];
   int startCycle;
   int endCycle;
   ProcessState state; // Estado en ese rango de tiempo (RUNNING, WAITING, etc.)
@@ -119,7 +118,7 @@ typedef struct
 } SimulationMetrics;
 
 /**
- * Funciones para Nétricas y Resultados
+ * Funciones para Métricas y Resultados
  */
 
 // Cálculo de métricas
@@ -131,6 +130,9 @@ void exportMetrics(const char *filename, SimulationMetrics metrics);
 void exportProcessMetric(const Process *p);
 void exportEventRealtime(TimelineEvent *event);
 void exportSimulationEnd();
+
+// Ver timelinelog de los eventos
+void printEventForProcess(Process *process, int currentTime, ProcessState state, TimelineEvent *events, int *eventCount);
 
 /**
  * Funciones para carga y manejo de datos
