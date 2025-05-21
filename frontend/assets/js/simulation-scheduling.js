@@ -57,13 +57,12 @@ function getColorForProcess(pid, state) {
  *   endCycle: ciclo donde termina el evento.
  */
 function renderGanttTable(events) {
-  // Obtiene la referencia a la tabla y a la leyenda en el DOM
   const table = document.getElementById("gantt-table");
   const legend = document.getElementById("gantt-legend");
 
-  // Limpia cualquier contenido previo en la tabla y la leyenda
   table.innerHTML = "";
   legend.innerHTML = "";
+
   let pids = [...new Set(events.map((e) => e.pid))];
   if (sortGanttByPID) {
     pids.sort((a, b) => {
@@ -76,41 +75,52 @@ function renderGanttTable(events) {
 
   const maxCycle = Math.max(...events.map((e) => e.endCycle));
 
-  // Construye la leyenda mostrando el color asignado a cada proceso (usando color de estado NEW)
+  // Leyenda
   pids.forEach((pid) => {
     const legendColor = getColorForProcess(pid, "NEW");
     legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background:${legendColor}"></div>${pid}</div>`;
   });
 
-  // Construye la fila de encabezado con el título y números de ciclo
+  // Encabezado
   let headerRow = "<tr><th>Proceso/Ciclo</th>";
   for (let c = 0; c <= maxCycle; c++) headerRow += `<th>${c}</th>`;
   headerRow += "</tr>";
   table.innerHTML += headerRow;
 
-  // Construye cada fila para cada proceso
+  // Filas de procesos
   pids.forEach((pid) => {
     let row = `<tr><td>${pid}</td>`;
     for (let c = 0; c <= maxCycle; c++) {
-      // Obtener todos los eventos que coincidan con este ciclo y proceso
-      const matchingEvents = events.filter(
+      const matching = events.filter(
         (e) => e.pid === pid && c >= e.startCycle && c < e.endCycle
       );
 
-      // Prioridad: NEW y TERMINATED por encima de ACCESSED y WAITING
-      let chosenEvent = null;
-      const priorityOrder = ["NEW", "TERMINATED", "ACCESSED", "WAITING"];
-      for (const state of priorityOrder) {
-        chosenEvent = matchingEvents.find((e) => e.state === state);
-        if (chosenEvent) break;
+      const hasNew = matching.some((e) => e.state === "NEW");
+      const hasAccessed = matching.some((e) => e.state === "ACCESSED");
+      const hasTerminated = matching.some((e) => e.state === "TERMINATED");
+      const hasWaiting = matching.some((e) => e.state === "WAITING");
+
+      let label = "";
+      let color = "";
+
+      if (hasTerminated) {
+        label = `TD - ${pid}`;
+        color = getColorForProcess(pid, "ACCESSED");
+      } else if (hasAccessed && hasNew) {
+        label = `NW - ${pid}`;
+        color = getColorForProcess(pid, "ACCESSED");
+      } else if (hasAccessed) {
+        label = pid;
+        color = getColorForProcess(pid, "ACCESSED");
+      } else if (hasNew) {
+        label = `NW - ${pid}`;
+        color = "transparent";
+      } else if (hasWaiting) {
+        // label = pid;
+        color = getColorForProcess(pid, "WAITING");
       }
 
-      row += chosenEvent
-        ? `<td style="background:${getColorForProcess(
-            pid,
-            chosenEvent.state
-          )}; color: #000;">${pid}</td>`
-        : "<td></td>";
+      row += `<td style="background:${color}; color:#000;">${label}</td>`;
     }
     row += "</tr>";
     table.innerHTML += row;
