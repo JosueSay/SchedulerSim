@@ -6,39 +6,41 @@
     <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
     <link rel="stylesheet" href="/static/css/common.css" />
     <link rel="stylesheet" href="/static/css/simulation-scheduling.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
   <body onload="initializeSimulation();">
-    <h1>Resultado de la Simulación</h1>
+    <div id="simulation-report">
+      <h1>Resultado de la Simulación</h1>
 
-    <!-- Diagrama de Gantt -->
-    <div id="gantt-container" class="card">
-      <h2>Diagrama de Gantt</h2>
-      <!-- Ciclo Actual -->
-      <div id="cycle-counter" class="cycle-counter"></div>
-      <div id="simulation-status" class="simulation-status"></div>
-      <div id="algorithm-used" class="algorithm-used"></div>
-      <div id="quantum-info" class="quantum-info" style="display: none"></div>
-      <div
-        id="preemptive-info"
-        class="preemptive-info"
-        style="display: none"
-      ></div>
+      <!-- Diagrama de Gantt -->
+      <div id="gantt-container" class="card">
+        <h2>Diagrama de Gantt</h2>
+        <!-- Ciclo Actual -->
+        <div id="cycle-counter" class="cycle-counter"></div>
+        <div id="simulation-status" class="simulation-status"></div>
+        <div id="algorithm-used" class="algorithm-used"></div>
+        <div id="quantum-info" class="quantum-info" style="display: none"></div>
+        <div
+          id="preemptive-info"
+          class="preemptive-info"
+          style="display: none"
+        ></div>
 
-      <div id="gantt-scroll">
-        <table id="gantt-table"></table>
+        <div id="gantt-scroll">
+          <table id="gantt-table"></table>
+        </div>
+        <div class="legend" id="gantt-legend"></div>
       </div>
-      <div class="legend" id="gantt-legend"></div>
-    </div>
 
-    <!-- Métricas -->
-    <div id="metrics-panel" class="card">
-      <h2>Métricas</h2>
-      <div id="metrics-scroll">
-        <table id="metrics-table" class="metrics-table"></table>
+      <!-- Métricas -->
+      <div id="metrics-panel" class="card">
+        <h2>Métricas</h2>
+        <div id="metrics-scroll">
+          <table id="metrics-table" class="metrics-table"></table>
+        </div>
+        <div id="metrics-average" class="cycle-counter"></div>
       </div>
-      <div id="metrics-average" class="cycle-counter"></div>
     </div>
-
     <!-- Navegación -->
     <div style="text-align: center; margin-top: 30px">
       <button class="main-button" onclick="resetSimulation();">
@@ -49,6 +51,9 @@
       </button>
       <button class="main-button" onclick="returnHome();">
         Volver a Inicio
+      </button>
+      <button class="main-button" onclick="downloadScreenshot()">
+        Descargar Imagen
       </button>
     </div>
 

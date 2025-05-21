@@ -269,3 +269,43 @@ function returnHome() {
   denyAccess();
   window.location.href = "/";
 }
+
+function downloadScreenshot() {
+  const element = document.getElementById("simulation-report");
+  const ganttScroll = document.getElementById("gantt-scroll");
+  const metricsScroll = document.getElementById("metrics-scroll");
+
+  // Guardar estilos originales
+  const originalReportStyle = element.style.cssText;
+  const originalGanttStyle = ganttScroll.style.cssText;
+  const originalMetricsStyle = metricsScroll.style.cssText;
+
+  // Aplicar estilos temporales para expandir completamente
+  element.style.width = "max-content";
+  ganttScroll.style.maxHeight = "none";
+  ganttScroll.style.overflow = "visible";
+  metricsScroll.style.maxHeight = "none";
+  metricsScroll.style.overflow = "visible";
+
+  // Esperar a que se apliquen los estilos antes de capturar
+  setTimeout(() => {
+    html2canvas(element, {
+      scale: 3,
+      useCORS: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: document.body.scrollWidth,
+      windowHeight: document.body.scrollHeight,
+    }).then((canvas) => {
+      const link = document.createElement("a");
+      link.download = "simulacion_gantt.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      // Restaurar estilos originales
+      element.style.cssText = originalReportStyle;
+      ganttScroll.style.cssText = originalGanttStyle;
+      metricsScroll.style.cssText = originalMetricsStyle;
+    });
+  }, 100);
+}
