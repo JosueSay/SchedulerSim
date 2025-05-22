@@ -37,7 +37,7 @@ function getColorForProcess(pid, state) {
     case "TERMINATED":
       return `${base} 1)`; // opacidad completa
     case "ACCESSED":
-      return `${base} 0.7)`; // tono medio
+      return `${base} 1)`; // tono medio
     case "WAITING":
       return `${base} 0.3)`; // tono opaco
     default:
@@ -109,15 +109,18 @@ function renderGanttTable(events) {
       } else if (hasAccessed && hasNew) {
         label = `NW - ${pid}`;
         color = getColorForProcess(pid, "ACCESSED");
+      } else if (hasWaiting && hasNew) {
+        label = `NW - ${pid}`;
+        color = getColorForProcess(pid, "WAITING");
       } else if (hasAccessed) {
         label = pid;
         color = getColorForProcess(pid, "ACCESSED");
+      } else if (hasWaiting) {
+        label = "";
+        color = getColorForProcess(pid, "WAITING");
       } else if (hasNew) {
         label = `NW - ${pid}`;
         color = "transparent";
-      } else if (hasWaiting) {
-        // label = pid;
-        color = getColorForProcess(pid, "WAITING");
       }
 
       row += `<td style="background:${color}; color:#000;">${label}</td>`;

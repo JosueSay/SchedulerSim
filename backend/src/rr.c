@@ -72,12 +72,12 @@ void simulateRR(Process *processes, int processCount,
       }
     }
 
-    // Si no hay proceso actual o se agotó el quantum
+    // Si no hay proceso actual o se agotó el quantum = cambio de proceso en ejecución
     if (currentProcess == -1 || quantumCounter == quantum)
     {
       if (currentProcess != -1 && remainingBurst[currentProcess] > 0)
       {
-        queue[queueEnd++] = currentProcess;
+        queue[queueEnd++] = currentProcess; // reencolar el proceso actual
       }
 
       if (queueStart < queueEnd)
@@ -105,7 +105,7 @@ void simulateRR(Process *processes, int processCount,
           processes[i].state != STATE_TERMINATED &&
           remainingBurst[i] > 0)
       {
-        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount);
+        printEventForProcess(&processes[i], currentTime, STATE_WAITING, events, eventCount); // marcar procesos que ya estan en la simulación pero no se ejecutan
       }
     }
 
