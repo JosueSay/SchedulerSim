@@ -3,6 +3,9 @@ const simulationStatus = document.getElementById("simulation-status");
 let sortGanttByPID = false; // false = orden original
 let currentSortField = "";
 let sortAscending = true;
+const resourcesLoaded = [];
+const actionsLoaded = [];
+let mechanismUsed = "";
 
 const processColors = {};
 let colorIndex = 0;
@@ -43,6 +46,58 @@ function getColorForProcess(pid, state) {
     default:
       return `${base} 1)`; // fallback
   }
+}
+
+function renderResourcesTable() {
+  const table = document.getElementById("resources-table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Disponible</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${resourcesLoaded
+        .map(
+          (r) => `
+          <tr>
+            <td>${r.name}</td>
+            <td>${r.counter}</td>
+          </tr>
+        `
+        )
+        .join("")}
+    </tbody>
+  `;
+}
+
+function renderActionsTable() {
+  const table = document.getElementById("actions-table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th>Acción</th>
+        <th>Recurso</th>
+        <th>Ciclo</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${actionsLoaded
+        .map(
+          (a) => `
+          <tr>
+            <td>${a.pid}</td>
+            <td>${a.action}</td>
+            <td>${a.resource}</td>
+            <td>${a.cycle}</td>
+          </tr>
+        `
+        )
+        .join("")}
+    </tbody>
+  `;
 }
 
 /**
@@ -241,6 +296,19 @@ function initializeSimulation() {
       cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
       simulationStatus.textContent = "Estado: En proceso";
     }
+
+    if (data.event === "CONFIG") {
+      mechanismUsed = data.mechanism;
+      document.getElementById(
+        "mechanism-used"
+      ).textContent = `Mecanismo: ${mechanismUsed}`;
+    } else if (data.event === "RESOURCE_LOADED") {
+      resourcesLoaded.push(data);
+      renderResourcesTable();
+    } else if (data.event === "ACTION_LOADED") {
+      actionsLoaded.push(data);
+      renderActionsTable();
+    }
   };
 
   ws.onerror = (err) => {
@@ -257,7 +325,7 @@ function initializeSimulation() {
  * Reinicia la simulación limpiando tabla y ciclo,
  * cerrando y reiniciando WebSocket
  */
-function resetSimulation() {
+function resetScheduling() {
   // Cierra WebSocket si aún está abierto
   if (ws && ws.readyState !== WebSocket.CLOSED) {
     ws.close();
@@ -285,9 +353,14 @@ function resetSimulation() {
 /**
  * Navegación entre vistas
  */
-function restartSimulation() {
+function returnConfigurationScheduling() {
   denyAccess();
   window.location.href = "/config-scheduling";
+}
+
+function returnConfigurationSync() {
+  denyAccess();
+  window.location.href = "/config-synchronization";
 }
 
 function returnHome() {
