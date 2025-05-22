@@ -2,14 +2,101 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Simulación Sincronización</title>
+    <title>Simulación - Diagrama de Gantt</title>
     <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
     <link rel="stylesheet" href="/static/css/common.css" />
-    <link rel="stylesheet" href="/static/css/simulation-scheduling.css" />
+    <link rel="stylesheet" href="/static/css/simulation.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
-  <body>
-    <h1>Resultado de la Simulación</h1>
-    <h1>Hola mundo, esta es la página de simulación de sincronización</h1>
+  <body onload="initializeSimulation();">
+    <div id="simulation-report">
+      <h1>Resultado de la Simulación</h1>
+
+      <!-- Diagrama de Gantt -->
+      <div id="gantt-container" class="card">
+        <h2>Diagrama de Gantt</h2>
+        <!-- Ciclo Actual -->
+        <div id="cycle-counter" class="cycle-counter"></div>
+        <div id="simulation-status" class="simulation-status"></div>
+        <div id="mechanism-used" class="mechanism-used"></div>
+
+        <div id="gantt-scroll">
+          <table id="gantt-table"></table>
+        </div>
+        <div class="legend" id="gantt-legend"></div>
+        <div id="gantt-order-btn" style="text-align: center; margin: 1.5rem 0">
+          <button class="secondary-button" onclick="toggleGanttOrder()">
+            Ordenar por PID
+          </button>
+        </div>
+      </div>
+
+      <!-- Métricas/Información -->
+      <div id="metrics-panel" class="card">
+        <h2>Métricas/Información</h2>
+        <h3>Procesos</h3>
+        <div id="metrics-scroll">
+          <table id="metrics-table" class="metrics-table"></table>
+        </div>
+        <div class="metrics-sort-buttons">
+          <button class="secondary-button" onclick="sortMetrics('pid')">
+            Ordenar por PID
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('arrivalTime')">
+            Ordenar por AT
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('burstTime')">
+            Ordenar por BT
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('priority')">
+            Ordenar por Priority
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('startTime')">
+            Ordenar por Start
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('endTime')">
+            Ordenar por End
+          </button>
+          <button class="secondary-button" onclick="sortMetrics('waitingTime')">
+            Ordenar por Waiting
+          </button>
+        </div>
+        <!-- Recursos -->
+        <div id="resources-panel" class="card">
+          <h3>Recursos</h3>
+          <div id="resources-scroll">
+            <table id="resources-table" class="metrics-table"></table>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div id="actions-panel" class="card">
+          <h3>Acciones</h3>
+          <div id="actions-scroll">
+            <table id="actions-table" class="metrics-table"></table>
+          </div>
+        </div>
+
+        <div id="metrics-average" class="cycle-counter"></div>
+      </div>
+    </div>
+    <!-- Navegación -->
+    <div style="text-align: center; margin-top: 30px">
+      <button class="main-button" onclick="resetSync();">
+        Reiniciar Simulación
+      </button>
+      <button class="main-button" onclick="returnConfigurationSync();">
+        Volver a Configuración
+      </button>
+      <button class="main-button" onclick="returnHome();">
+        Volver a Inicio
+      </button>
+      <button class="main-button" onclick="downloadScreenshot()">
+        Descargar Imagen
+      </button>
+    </div>
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/simulation.js"></script>
   </body>
 </html>

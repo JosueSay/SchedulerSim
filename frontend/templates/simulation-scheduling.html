@@ -5,7 +5,7 @@
     <title>Simulación - Diagrama de Gantt</title>
     <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
     <link rel="stylesheet" href="/static/css/common.css" />
-    <link rel="stylesheet" href="/static/css/simulation-scheduling.css" />
+    <link rel="stylesheet" href="/static/css/simulation.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
   <body onload="initializeSimulation();">
@@ -37,9 +37,9 @@
         </div>
       </div>
 
-      <!-- Métricas -->
+      <!-- Métricas/Información -->
       <div id="metrics-panel" class="card">
-        <h2>Métricas</h2>
+        <h2>Métricas/Información</h2>
         <div id="metrics-scroll">
           <table id="metrics-table" class="metrics-table"></table>
         </div>
@@ -72,10 +72,10 @@
     </div>
     <!-- Navegación -->
     <div style="text-align: center; margin-top: 30px">
-      <button class="main-button" onclick="resetSimulation();">
+      <button class="main-button" onclick="resetScheduling();">
         Reiniciar Simulación
       </button>
-      <button class="main-button" onclick="restartSimulation();">
+      <button class="main-button" onclick="returnConfigurationScheduling();">
         Volver a Configuración
       </button>
       <button class="main-button" onclick="returnHome();">
@@ -87,6 +87,6 @@
     </div>
 
     <script src="/static/js/common.js"></script>
-    <script src="/static/js/simulation-scheduling.js"></script>
+    <script src="/static/js/simulation.js"></script>
   </body>
 </html>
