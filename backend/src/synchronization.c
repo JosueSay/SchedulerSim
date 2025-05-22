@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+// Inicializa recursos con valores desbloqueados
 void initializeResources(Resource *resources, int resourceCount)
 {
   for (int i = 0; i < resourceCount; i++)
@@ -14,21 +15,27 @@ void initializeResources(Resource *resources, int resourceCount)
   }
 }
 
+// Simula sincronización usando mutex o semáforo con distinción entre READ y WRITE
 void simulateSynchronization(Process *processes, int processCount,
                              Resource *resources, int resourceCount,
                              Action *actions, int actionCount,
                              TimelineEvent *events, int *eventCount,
                              int useMutex)
 {
+
   int currentCycle = 0;
   int completed = 0;
   *eventCount = 0;
+
   bool newPrinted[MAX_PROCESSES] = {false};
   int waitingCounters[MAX_PROCESSES] = {0};
   int firstActionCycle[MAX_PROCESSES];
   int lastActionCycle[MAX_PROCESSES];
   bool started[MAX_PROCESSES] = {false};
   bool resourceUsedThisCycle[COMMON_MAX_LEN] = {false};
+
+  int starvationLimit = 20;
+  int noProgressCycles = 0;
 
   for (int i = 0; i < processCount; i++)
   {
@@ -40,74 +47,75 @@ void simulateSynchronization(Process *processes, int processCount,
 
   while (completed < processCount)
   {
-    // Marcar procesos nuevos
+    int progressMade = 0;
+
+    // Imprimir eventos NEW para procesos que llegan
     for (int i = 0; i < processCount; i++)
     {
       if (processes[i].arrivalTime == currentCycle && !newPrinted[i])
       {
-        printEventForProcess(&processes[i], currentCycle, STATE_NEW, events, eventCount);
+        printEventForSyncProcess(&processes[i], currentCycle, STATE_NEW, events, eventCount, ACTION_NONE);
         newPrinted[i] = true;
       }
     }
 
-    // Limpiar uso de recursos del ciclo anterior
-    memset(resourceUsedThisCycle, 0, sizeof(bool) * COMMON_MAX_LEN);
+    memset(resourceUsedThisCycle, 0, sizeof(bool) * resourceCount);
 
-    // Primera fase: ejecución de acciones
-    for (int i = 0; i < actionCount; i++)
+    // Procesar acciones de cada proceso
+    for (int i = 0; i < processCount; i++)
     {
-      Action *a = &actions[i];
-      if (a->cycle == currentCycle)
+      if (processes[i].state == STATE_TERMINATED || processes[i].arrivalTime > currentCycle)
+        continue;
+
+      for (int j = 0; j < actionCount; j++)
       {
-        Process *p = NULL;
-        int pIndex = -1;
-        for (int j = 0; j < processCount; j++)
-        {
-          if (strcmp(processes[j].pid, a->pid) == 0)
-          {
-            p = &processes[j];
-            pIndex = j;
-            break;
-          }
-        }
+        Action *a = &actions[j];
+        if (strcmp(a->pid, processes[i].pid) != 0)
+          continue;
+        if (a->cycle > currentCycle)
+          continue;
 
         int resIndex = -1;
-        Resource *r = NULL;
-        for (int j = 0; j < resourceCount; j++)
+        for (int k = 0; k < resourceCount; k++)
         {
-          if (strcmp(resources[j].name, a->resourceName) == 0)
+          if (strcmp(resources[k].name, a->resourceName) == 0)
           {
-            r = &resources[j];
-            resIndex = j;
+            resIndex = k;
             break;
           }
         }
+        if (resIndex == -1)
+          continue;
+        Resource *r = &resources[resIndex];
 
-        if (p && r && resIndex != -1)
+        int granted = 0;
+        granted = useMutex ? acquireMutex(r) : acquireSemaphore(r);
+
+        if (granted)
         {
-          if (!resourceUsedThisCycle[resIndex])
+          resourceUsedThisCycle[resIndex] = true;
+
+          printEventForSyncProcess(&processes[i], currentCycle, STATE_ACCESSED, events, eventCount, a->action);
+
+          if (!started[i])
           {
-            int granted = useMutex ? acquireMutex(r) : acquireSemaphore(r);
-            if (granted)
-            {
-              resourceUsedThisCycle[resIndex] = true;
-              printEventForProcess(p, currentCycle, STATE_ACCESSED, events, eventCount);
-              if (!started[pIndex])
-              {
-                firstActionCycle[pIndex] = currentCycle;
-                started[pIndex] = true;
-              }
-              lastActionCycle[pIndex] = currentCycle;
-              continue; // no marcar como waiting
-            }
+            firstActionCycle[i] = currentCycle;
+            started[i] = true;
           }
-          waitingCounters[pIndex]++;
-          printEventForProcess(p, currentCycle, STATE_WAITING, events, eventCount);
+          lastActionCycle[i] = currentCycle;
+
+          processes[i].burstTime--;
+          progressMade++;
+          break; // Solo una acción por ciclo
         }
+
+        waitingCounters[i]++;
+        printEventForSyncProcess(&processes[i], currentCycle, STATE_WAITING, events, eventCount, ACTION_NONE);
+        break;
       }
     }
 
-    // Segunda fase: liberar recursos
+    // Liberar recursos utilizados en este ciclo
     for (int i = 0; i < resourceCount; i++)
     {
       if (resourceUsedThisCycle[i])
@@ -122,31 +130,32 @@ void simulateSynchronization(Process *processes, int processCount,
     // Verificar procesos terminados
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].state != STATE_TERMINATED)
+      if (processes[i].state != STATE_TERMINATED && processes[i].burstTime == 0)
       {
-        bool hasPending = false;
-        for (int j = 0; j < actionCount; j++)
-        {
-          if (strcmp(actions[j].pid, processes[i].pid) == 0 &&
-              actions[j].cycle > currentCycle)
-          {
-            hasPending = true;
-            break;
-          }
-        }
+        processes[i].state = STATE_TERMINATED;
+        processes[i].waitingTime = waitingCounters[i];
+        processes[i].startTime = firstActionCycle[i];
+        processes[i].finishTime = lastActionCycle[i] + 1;
 
-        if (!hasPending)
-        {
-          processes[i].state = STATE_TERMINATED;
-          processes[i].waitingTime = waitingCounters[i];
-          processes[i].startTime = firstActionCycle[i];
-          processes[i].finishTime = lastActionCycle[i] + 1;
-
-          printEventForProcess(&processes[i], currentCycle, STATE_TERMINATED, events, eventCount);
-          exportProcessMetric(&processes[i]);
-          completed++;
-        }
+        printEventForSyncProcess(&processes[i], currentCycle, STATE_TERMINATED, events, eventCount, ACTION_NONE);
+        exportProcessMetric(&processes[i]);
+        completed++;
       }
+    }
+
+    // Detectar estancamiento
+    if (progressMade == 0)
+    {
+      noProgressCycles++;
+      if (noProgressCycles > starvationLimit)
+      {
+        fprintf(stderr, "\nPosible deadlock: sin progreso por %d ciclos.\n", starvationLimit);
+        break;
+      }
+    }
+    else
+    {
+      noProgressCycles = 0;
     }
 
     currentCycle++;
