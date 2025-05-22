@@ -53,6 +53,11 @@ Durante cada segundo de simulación se ejecutan los siguientes pasos:
 
    Si no hay procesos disponibles, el tiempo simplemente avanza en 1 unidad y se realiza una pausa con `usleep`.
 
+   En caso de **empate** entre varios procesos con el mismo `remainingTime`, se aplican las siguientes reglas de desempate:
+
+      1. Se continúa ejecutando el **proceso que ya estaba en ejecución** (si aplica).
+      2. Si ninguno de los empatados estaba ejecutándose previamente, se selecciona el proceso con **mayor prioridad** (valor de `priority` más bajo).
+
 3. **Registro de procesos en espera**
    Todos los procesos activos (ya llegaron, no terminados, con tiempo restante) que **no** están en ejecución en ese ciclo, se marcan como `WAITING`.
 

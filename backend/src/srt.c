@@ -26,6 +26,10 @@
  * - Actualiza los estados de los procesos y exporta métricas al final de su ejecución.
  * - Se consideran eventos de espera (WAITING) para procesos activos que no están ejecutando.
  * - Al completar todos los procesos, exporta el fin de la simulación.
+ *
+ * Criterios de desempate:
+ * - En caso de empate en `remainingTime`, se continúa ejecutando el proceso que ya estaba en ejecución.
+ * - Si ninguno estaba en ejecución, se elige el de mayor prioridad (valor `priority` menor).
  */
 void simulateSRT(Process *processes, int processCount,
                  TimelineEvent *events, int *eventCount,

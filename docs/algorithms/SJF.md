@@ -47,6 +47,8 @@ En cada ciclo de tiempo se sigue esta secuencia:
      * Se incrementa el `currentTime`.
      * Se verifica si nuevos procesos llegan y se marcan con `NEW`.
 
+   En caso de **empate** entre procesos con el mismo `burstTime`, se selecciona aquel que haya llegado **antes** (`arrivalTime` menor).
+
 4. **Finalización del proceso (`TERMINATED`)**:
    Al concluir su ejecución:
 

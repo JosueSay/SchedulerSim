@@ -16,6 +16,7 @@
  *
  * Esta función implementa la planificación SJF no expropiativa, donde en cada ciclo se selecciona el proceso
  * con el menor tiempo de ráfaga (burstTime) entre los que han llegado y aún no han terminado.
+ *  - En caso de empate entre procesos con el mismo `burstTime`, se selecciona aquel que haya llegado **antes** (`arrivalTime` menor).
  *
  * Una vez seleccionado, el proceso se ejecuta completamente sin ser interrumpido. Durante su ejecución:
  *  - Se registran los eventos de espera (STATE_WAITING) para los demás procesos que ya llegaron.
