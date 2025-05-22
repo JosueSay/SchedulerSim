@@ -3,8 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <title>Configuración Sincronización</title>
+    <link rel="icon" href="/static/images/page-icon.png" type="image/png" />
+    <link href="/static/css/common.css" rel="stylesheet" />
+    <link href="/static/css/config.css" rel="stylesheet" />
   </head>
   <body>
-    <h1>Hola mundo, esta es la página de configuración de sincronización</h1>
+    <h1>Configuración de la Simulación</h1>
+    <form id="sync-config-form">
+      <div class="card">
+        <label for="mechanism">Mecanismo de Sincronización:</label>
+        <select id="mechanism" name="mechanism">
+          <option value="mutex">Mutex Lock</option>
+          <option value="semaphore">Semáforo</option>
+        </select>
+      </div>
+      <div style="text-align: center; margin-top: 30px">
+        <button
+          type="button"
+          class="main-button"
+          onclick="startSyncSimulation();"
+        >
+          Iniciar Simulación
+        </button>
+      </div>
+    </form>
+    <script src="/static/js/alerts.js"></script>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/config-synchronization.js"></script>
   </body>
 </html>
