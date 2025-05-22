@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stdbool.h>
 
 /**
  * Simula la planificación por Prioridad (PS) para un conjunto de procesos.
@@ -15,11 +16,11 @@
  *
  * Esta función simula la ejecución de procesos usando un esquema de planificación por prioridad.
  * Los procesos son seleccionados en cada ciclo en base a su prioridad: a menor valor, mayor prioridad.
- * En caso de empate, se considera el tiempo de llegada y la duración de la ráfaga.
+ * En caso de empate, se considera el tiempo de llegada y la duración de la simulación.
  *
  * El algoritmo puede funcionar en modo preventivo o no preventivo:
  * - Si es **preventivo**, puede interrumpir un proceso en ejecución si otro con mayor prioridad llega.
- * - Si es **no preventivo**, el proceso seleccionado se ejecuta hasta completar su ráfaga.
+ * - Si es **no preventivo**, el proceso seleccionado se ejecuta hasta completar su simulación.
  *
  * Durante la simulación, se registran los eventos de cada proceso (NEW, WAITING, ACCESSED, TERMINATED)
  * para representar visualmente su evolución temporal.
@@ -34,14 +35,16 @@ void simulatePS(Process *processes, int processCount,
   int isPreemptive = control->config.isPreemptive;
   int remainingBurst[MAX_PROCESSES];
   *eventCount = 0;
+  bool newPrinted[MAX_PROCESSES] = {false};
 
-  // Inicializar ráfagas restantes y emitir eventos NEW para procesos con llegada en 0
+  // Inicializar simulacións restantes y emitir eventos NEW para procesos con llegada en 0
   for (int i = 0; i < processCount; i++)
   {
     remainingBurst[i] = processes[i].burstTime;
     if (processes[i].arrivalTime == 0)
     {
       printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+      newPrinted[i] = true;
     }
   }
 
@@ -50,9 +53,10 @@ void simulatePS(Process *processes, int processCount,
     // Registrar procesos que acaban de llegar (NEW)
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime == currentTime)
+      if (processes[i].arrivalTime == currentTime && !newPrinted[i])
       {
         printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+        newPrinted[i] = true;
       }
     }
 
@@ -64,6 +68,11 @@ void simulatePS(Process *processes, int processCount,
           processes[i].state != STATE_TERMINATED &&
           remainingBurst[i] > 0)
       {
+
+        // Desempate:
+        // 1. Mayor prioridad (menor valor)
+        // 2. Misma prioridad y llegó antes
+        // 3. Misma prioridad, llegó al mismo tiempo, menor tiempo en simulación
         if (selectedIdx == -1 ||
             processes[i].priority < processes[selectedIdx].priority ||
             (processes[i].priority == processes[selectedIdx].priority &&
@@ -128,9 +137,10 @@ void simulatePS(Process *processes, int processCount,
         // Verificar si algún proceso llega justo en este ciclo
         for (int i = 0; i < processCount; i++)
         {
-          if (processes[i].arrivalTime == currentTime)
+          if (processes[i].arrivalTime == currentTime && !newPrinted[i])
           {
             printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+            newPrinted[i] = true;
           }
         }
 
@@ -161,6 +171,4 @@ void simulatePS(Process *processes, int processCount,
       remainingBurst[selectedIdx] = 0;
     }
   }
-
-  exportSimulationEnd();
 }

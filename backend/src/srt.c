@@ -113,6 +113,4 @@ void simulateSRT(Process *processes, int processCount,
       completed++;
     }
   }
-
-  exportSimulationEnd();
 }

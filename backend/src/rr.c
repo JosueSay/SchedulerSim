@@ -133,6 +133,4 @@ void simulateRR(Process *processes, int processCount,
     currentTime++;
     usleep(SIMULATION_DELAY_US);
   }
-
-  exportSimulationEnd();
 }

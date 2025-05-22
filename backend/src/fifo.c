@@ -21,7 +21,7 @@
  * - NEW: cuando un proceso llega.
  * - WAITING: cuando un proceso está listo pero esperando su turno.
  * - ACCESSED: cuando un proceso está en ejecución.
- * - TERMINATED: cuando un proceso termina su ráfaga.
+ * - TERMINATED: cuando un proceso termina su simulación.
  *
  * Entre ciclos se utiliza un retardo (usleep) para simular el paso del tiempo en tiempo real.
  * Finalmente, se exportan las métricas de cada proceso y se indica el fin de la simulación.
@@ -110,6 +110,4 @@ void simulateFIFO(Process *processes, int processCount,
     currentTime++;
     usleep(SIMULATION_DELAY_US);
   }
-
-  exportSimulationEnd();
 }

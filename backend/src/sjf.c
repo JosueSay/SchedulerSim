@@ -118,6 +118,4 @@ void simulateSJF(Process *processes, int processCount,
     exportProcessMetric(p);
     completed++;
   }
-
-  exportSimulationEnd();
 }
