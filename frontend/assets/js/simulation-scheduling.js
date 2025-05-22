@@ -255,14 +255,27 @@ function initializeSimulation() {
  * cerrando y reiniciando WebSocket
  */
 function resetSimulation() {
+  // Cierra WebSocket si aún está abierto
+  if (ws && ws.readyState !== WebSocket.CLOSED) {
+    ws.close();
+  }
+
+  // Limpiar estado visual
   cycleCounter.textContent = "Ciclo Actual: --";
   simulationStatus.textContent = "Estado: Reiniciado";
-
   document.getElementById("gantt-table").innerHTML = "";
   document.getElementById("gantt-legend").innerHTML = "";
-  document.getElementById("metrics-panel").innerHTML = "";
+  document.getElementById("metrics-table").innerHTML = "";
+  document.getElementById("metrics-average").textContent = "";
 
-  if (ws) ws.close();
+  // Limpiar datos
+  events.length = 0;
+  processMetrics.length = 0;
+  currentCycle = 0;
+  colorIndex = 0;
+  Object.keys(processColors).forEach((key) => delete processColors[key]);
+
+  // Reiniciar la simulación
   initializeSimulation();
 }
 
