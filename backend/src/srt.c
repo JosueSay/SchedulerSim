@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stdbool.h>
 
 /**
  * Simula la planificación SRT (Shortest Remaining Time) en tiempo real para un conjunto de procesos.
@@ -34,6 +35,8 @@ void simulateSRT(Process *processes, int processCount,
   int completed = 0;
   int remainingTime[MAX_PROCESSES];
   *eventCount = 0;
+  bool newPrinted[MAX_PROCESSES] = {false};
+  int lastExecutedIdx = -1;
 
   for (int i = 0; i < processCount; i++)
   {
@@ -43,6 +46,7 @@ void simulateSRT(Process *processes, int processCount,
     if (processes[i].arrivalTime == 0)
     {
       printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+      newPrinted[i] = true;
     }
   }
 
@@ -51,24 +55,41 @@ void simulateSRT(Process *processes, int processCount,
     // Registrar procesos que acaban de llegar
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime == currentTime)
+      if (processes[i].arrivalTime == currentTime && !newPrinted[i])
       {
         printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+        newPrinted[i] = true;
       }
     }
 
     int shortestIdx = -1;
     int minRemaining = INT_MAX;
 
+    // Escoger el proceso con menor bt a ejecutar
     for (int i = 0; i < processCount; i++)
     {
       if (processes[i].arrivalTime <= currentTime &&
           processes[i].state != STATE_TERMINATED &&
-          remainingTime[i] > 0 &&
-          remainingTime[i] < minRemaining)
+          remainingTime[i] > 0)
       {
-        minRemaining = remainingTime[i];
-        shortestIdx = i;
+        if (remainingTime[i] < minRemaining)
+        {
+          minRemaining = remainingTime[i];
+          shortestIdx = i;
+        }
+        else if (remainingTime[i] == minRemaining) // empate bt
+        {
+          // continuar con el proceso que ya estaba ejecutando
+          if (i == lastExecutedIdx)
+          {
+            shortestIdx = i;
+          }
+          // Si ninguno estaba ejecutando, elegimos el de mayor prioridad (menor valor)
+          else if (shortestIdx != lastExecutedIdx && processes[i].priority < processes[shortestIdx].priority)
+          {
+            shortestIdx = i;
+          }
+        }
       }
     }
 
@@ -100,6 +121,7 @@ void simulateSRT(Process *processes, int processCount,
     printEventForProcess(p, currentTime, STATE_ACCESSED, events, eventCount);
     currentTime++;
     remainingTime[shortestIdx]--;
+    lastExecutedIdx = shortestIdx;
     usleep(SIMULATION_DELAY_US);
 
     // Si termina

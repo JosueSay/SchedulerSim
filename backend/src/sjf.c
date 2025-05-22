@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 /**
  * Simula la planificación SJF (Shortest Job First) no expropiativa en tiempo real para un conjunto de procesos.
@@ -34,24 +35,26 @@ void simulateSJF(Process *processes, int processCount,
   int currentTime = 0;
   int completed = 0;
   *eventCount = 0;
+  bool newPrinted[MAX_PROCESSES] = {false};
 
-  // Emitir NEW si llegaron en tiempo 0
+  // NEW si llegaron en tiempo 0
   for (int i = 0; i < processCount; i++)
   {
     if (processes[i].arrivalTime == 0)
     {
       printEventForProcess(&processes[i], 0, STATE_NEW, events, eventCount);
+      newPrinted[i] = true;
     }
   }
-
   while (completed < processCount)
   {
     // Registrar procesos que llegan justo en este ciclo
     for (int i = 0; i < processCount; i++)
     {
-      if (processes[i].arrivalTime == currentTime)
+      if (processes[i].arrivalTime == currentTime && !newPrinted[i])
       {
         printEventForProcess(&processes[i], currentTime, STATE_NEW, events, eventCount);
+        newPrinted[i] = true;
       }
     }
 
@@ -63,7 +66,10 @@ void simulateSJF(Process *processes, int processCount,
       if (processes[i].arrivalTime <= currentTime &&
           processes[i].state != STATE_TERMINATED)
       {
-        if (shortestIdx == -1 || processes[i].burstTime < processes[shortestIdx].burstTime)
+        if (shortestIdx == -1 ||
+            processes[i].burstTime < processes[shortestIdx].burstTime ||
+            (processes[i].burstTime == processes[shortestIdx].burstTime &&
+             processes[i].arrivalTime < processes[shortestIdx].arrivalTime))
         {
           shortestIdx = i;
         }
