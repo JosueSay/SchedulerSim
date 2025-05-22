@@ -234,14 +234,14 @@ function renderMetricsTable() {
  * Inicializa la simulación y gestiona WebSocket
  */
 let ws;
-function initializeSimulation() {
+function initializeSimulationSheduling() {
   cycleCounter.textContent = "Ciclo Actual: --";
   simulationStatus.textContent = "Estado: Esperando configuración";
   document.getElementById("algorithm-used").textContent = "Algoritmo: --";
   processMetrics.length = 0;
   events.length = 0;
 
-  const config = JSON.parse(localStorage.getItem("lastSimulationConfig")) || {
+  const config = JSON.parse(localStorage.getItem("lastShConfig")) || {
     algorithm: "FIFO",
   };
 
@@ -321,6 +321,70 @@ function initializeSimulation() {
   };
 }
 
+function initializeSimulationSync() {
+  cycleCounter.textContent = "Ciclo Actual: --";
+  simulationStatus.textContent = "Estado: Esperando configuración";
+  document.getElementById("mechanism-used").textContent = "Mecanismo: --";
+  processMetrics.length = 0;
+  events.length = 0;
+  actionsLoaded.length = 0;
+  resourcesLoaded.length = 0;
+
+  const config = JSON.parse(localStorage.getItem("lastSyncConfig")) || {
+    useMutex: 1,
+  };
+
+  ws = new WebSocket("ws://127.0.0.1:8000/ws/simulation-synchronization");
+
+  ws.onopen = () => {
+    console.log("Conexión WebSocket establecida.");
+    console.log("Configuración de simulación:", config);
+    ws.send(JSON.stringify(config));
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.event === "SIMULATION_END") {
+      ws.close();
+      cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
+      simulationStatus.textContent = "Estado: Finalizado";
+      renderMetricsTable();
+      return;
+    }
+
+    if (data.event === "CONFIG") {
+      mechanismUsed = data.mechanism;
+      document.getElementById(
+        "mechanism-used"
+      ).textContent = `Mecanismo: ${mechanismUsed}`;
+    } else if (data.event === "RESOURCE_LOADED") {
+      resourcesLoaded.push(data);
+      renderResourcesTable();
+    } else if (data.event === "ACTION_LOADED") {
+      actionsLoaded.push(data);
+      renderActionsTable();
+    } else if (data.event === "PROCESS_METRIC") {
+      processMetrics.push(data);
+    } else if (data.pid) {
+      currentCycle = data.endCycle;
+      events.push(data);
+      renderGanttTable(events);
+      cycleCounter.textContent = `Ciclo Actual: ${currentCycle}`;
+      simulationStatus.textContent = "Estado: En proceso";
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error("Error en WebSocket:", err);
+    showAlert("Error", "Conexión con la simulación perdida.", "error");
+  };
+
+  ws.onclose = () => {
+    console.log("Conexión WebSocket cerrada.");
+  };
+}
+
 /**
  * Reinicia la simulación limpiando tabla y ciclo,
  * cerrando y reiniciando WebSocket
@@ -347,7 +411,33 @@ function resetScheduling() {
   Object.keys(processColors).forEach((key) => delete processColors[key]);
 
   // Reiniciar la simulación
-  initializeSimulation();
+  initializeSimulationSheduling();
+}
+
+function resetSync() {
+  if (ws && ws.readyState !== WebSocket.CLOSED) {
+    ws.close();
+  }
+
+  cycleCounter.textContent = "Ciclo Actual: --";
+  simulationStatus.textContent = "Estado: Reiniciado";
+  document.getElementById("gantt-table").innerHTML = "";
+  document.getElementById("gantt-legend").innerHTML = "";
+  document.getElementById("metrics-table").innerHTML = "";
+  document.getElementById("metrics-average").textContent = "";
+  document.getElementById("resources-table").innerHTML = "";
+  document.getElementById("actions-table").innerHTML = "";
+  document.getElementById("mechanism-used").textContent = "Mecanismo: --";
+
+  events.length = 0;
+  processMetrics.length = 0;
+  actionsLoaded.length = 0;
+  resourcesLoaded.length = 0;
+  currentCycle = 0;
+  colorIndex = 0;
+  Object.keys(processColors).forEach((key) => delete processColors[key]);
+
+  initializeSimulationSync();
 }
 
 /**

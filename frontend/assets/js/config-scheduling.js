@@ -76,6 +76,6 @@ async function startSimulation() {
   if (!validateSimulationConfig(config)) return;
 
   // Guardar configuración para uso posterior
-  localStorage.setItem("lastSimulationConfig", JSON.stringify(config));
+  localStorage.setItem("lastShConfig", JSON.stringify(config));
   window.location.href = "/simulation-scheduling";
 }

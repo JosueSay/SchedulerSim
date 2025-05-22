@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/static/css/simulation.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
-  <body onload="initializeSimulation();">
+  <body onload="initializeSimulationSheduling();">
     <div id="simulation-report">
       <h1>Resultado de la Simulación</h1>
 
@@ -40,9 +40,11 @@
       <!-- Métricas/Información -->
       <div id="metrics-panel" class="card">
         <h2>Métricas/Información</h2>
+        <h3>Procesos</h3>
         <div id="metrics-scroll">
           <table id="metrics-table" class="metrics-table"></table>
         </div>
+        <div id="metrics-average" class="cycle-counter"></div>
         <div class="metrics-sort-buttons">
           <button class="secondary-button" onclick="sortMetrics('pid')">
             Ordenar por PID
@@ -66,8 +68,6 @@
             Ordenar por Waiting
           </button>
         </div>
-
-        <div id="metrics-average" class="cycle-counter"></div>
       </div>
     </div>
     <!-- Navegación -->

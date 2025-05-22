@@ -161,33 +161,45 @@ async def websocketSimulationScheduling(websocket: WebSocket):
         except RuntimeError:
             pass
 
-
 @app.websocket("/ws/simulation-synchronization")
 async def websocketSimulationSynchronization(websocket: WebSocket):
-    """WebSocket para simulación de sincronización (futuro binario)"""
     await websocket.accept()
     try:
         configData = await websocket.receive_text()
         config = json.loads(configData)
 
+        os.makedirs(DATA_OUTPUT_DIR, exist_ok=True)
+        log_path = os.path.join(DATA_OUTPUT_DIR, "synchronization_simulator.log")
+        log_file = open(log_path, "w", encoding="utf-8")
+
         process = await asyncio.create_subprocess_exec(
-            "../backend/bin/synchronization_simulator",
+            "../backend/bin/synchronization-simulator",
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
+
+        if process.stdin:
+            process.stdin.write((json.dumps({"useMutex": 1 if config["mechanism"] == "mutex" else 0}) + "\n").encode())
+            await process.stdin.drain()
+            process.stdin.close()
 
         while True:
             line = await process.stdout.readline()
             if not line:
                 break
-
             decodedLine = line.decode().strip()
+            log_file.write("[STDOUT] " + decodedLine + "\n")
             try:
                 eventData = json.loads(decodedLine)
                 if websocket.client_state.value == 1:
                     await websocket.send_text(json.dumps(eventData))
             except json.JSONDecodeError:
                 continue
+
+        stderr_output = await process.stderr.read()
+        if stderr_output:
+            log_file.write("[STDERR] " + stderr_output.decode() + "\n")
 
         if websocket.client_state.value == 1:
             await websocket.send_text(json.dumps({"event": "SIMULATION_END"}))
