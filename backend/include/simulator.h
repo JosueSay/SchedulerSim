@@ -85,6 +85,7 @@ typedef enum
 {
   ACTION_READ,
   ACTION_WRITE,
+  ACTION_NONE
 } ActionType;
 
 /**
@@ -129,10 +130,12 @@ void exportTimelineEvents(const char *filename, TimelineEvent *events, int event
 void exportMetrics(const char *filename, SimulationMetrics metrics);
 void exportProcessMetric(const Process *p);
 void exportEventRealtime(TimelineEvent *event);
+void exportSyncEventRealtime(TimelineEvent *event, ActionType action);
 void exportSimulationEnd();
 
 // Ver timelinelog de los eventos
 void printEventForProcess(Process *process, int currentTime, ProcessState state, TimelineEvent *events, int *eventCount);
+void printEventForSyncProcess(Process *process, int currentTime, ProcessState state, TimelineEvent *events, int *eventCount, ActionType action);
 
 /**
  * Funciones para carga y manejo de datos

@@ -40,6 +40,8 @@ const char *getActionTypeName(ActionType action)
     return "READ";
   case ACTION_WRITE:
     return "WRITE";
+  case ACTION_NONE:
+    return "NONE";
   default:
     return "UNKNOWN";
   }
@@ -307,6 +309,17 @@ void exportEventRealtime(TimelineEvent *event)
   fflush(stdout);
 }
 
+void exportSyncEventRealtime(TimelineEvent *event, ActionType action)
+{
+  printf("{\"pid\": \"%s\", \"startCycle\": %d, \"endCycle\": %d, \"state\": \"%s\", \"action\": \"%s\"}\n",
+         event->pid,
+         event->startCycle,
+         event->endCycle,
+         getProcessStateName(event->state),
+         getActionTypeName(action));
+  fflush(stdout);
+}
+
 /**
  * Indica la finalización de la simulación mediante un mensaje JSON.
  *
@@ -343,5 +356,16 @@ void printEventForProcess(Process *process, int currentTime, ProcessState state,
   events[*eventCount].endCycle = currentTime + 1;
   events[*eventCount].state = state;
   exportEventRealtime(&events[*eventCount]);
+  (*eventCount)++;
+}
+
+void printEventForSyncProcess(Process *process, int currentTime, ProcessState state, TimelineEvent *events, int *eventCount, ActionType action)
+{
+  snprintf(events[*eventCount].pid, COMMON_MAX_LEN, "%s", process->pid);
+  events[*eventCount].startCycle = currentTime;
+  events[*eventCount].endCycle = currentTime + 1;
+  events[*eventCount].state = state;
+
+  exportSyncEventRealtime(&events[*eventCount], action);
   (*eventCount)++;
 }
