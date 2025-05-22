@@ -366,7 +366,7 @@ function initializeSimulationSync() {
       renderActionsTable();
     } else if (data.event === "PROCESS_METRIC") {
       processMetrics.push(data);
-    } else if (data.pid) {
+    } else if (data.pid && "startCycle" in data && "endCycle" in data) {
       currentCycle = data.endCycle;
       events.push(data);
       renderGanttTable(events);
