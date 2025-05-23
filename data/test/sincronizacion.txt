@@ -1,16 +1,36 @@
 // procesos
-P1, 3, 0, 1
-P2, 3, 0, 2
-P3, 2, 0, 1
+A, 6, 0, 1
+B, 6, 0, 2
+C, 6, 1, 1
+D, 6, 2, 3
+E, 6, 3, 2
 
 // recursos
-R1, 1
+R1, 2
 R2, 1
+R3, 3
 
 // acciones
-P1, READ, R1, 0
-P2, READ, R2, 0
-P3, WRITE, R2, 0
-P1, WRITE, R2, 1
-P2, WRITE, R1, 2
-P3, READ, R1, 3
+A, READ, R1, 0
+B, READ, R1, 0
+C, READ, R1, 1
+D, WRITE, R2, 2
+E, READ, R3, 3
+A, WRITE, R2, 4
+B, READ, R3, 4
+C, READ, R3, 4
+A, WRITE, R1, 5
+B, WRITE, R1, 6
+C, WRITE, R1, 7
+D, READ, R3, 5
+E, WRITE, R3, 6
+A, READ, R3, 8
+B, WRITE, R2, 8
+C, READ, R3, 8
+D, WRITE, R1, 9
+E, READ, R1, 9
+A, WRITE, R3, 10
+B, READ, R3, 10
+C, WRITE, R2, 11
+D, READ, R2, 12
+E, WRITE, R3, 12
