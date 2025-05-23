@@ -178,7 +178,15 @@ function renderGanttTable(events) {
         color = "transparent";
       }
 
-      row += `<td style="background:${color}; color:#000;">${label}</td>`;
+      let actionText = "";
+      const actionEvent = matching.find(
+        (e) => e.action && e.action !== "NONE" && e.state !== "WAITING"
+      );
+      if (actionEvent) {
+        actionText = ` (${actionEvent.action})`;
+      }
+
+      row += `<td style="background:${color}; color:#000;">${label}${actionText}</td>`;
     }
     row += "</tr>";
     table.innerHTML += row;
@@ -191,12 +199,18 @@ function renderMetricsTable() {
   const table = document.getElementById("metrics-table");
   const average = document.getElementById("metrics-average");
 
+  const hasBTConsumed = "burstTimeConsumed" in processMetrics[0];
+  const hasBTPending = "burstTimePending" in processMetrics[0];
+
+  // Encabezados dinámicos
   table.innerHTML = `
     <thead>
       <tr>
         <th>PID</th>
         <th>AT</th>
         <th>BT</th>
+        ${hasBTConsumed ? "<th>BT Consumido</th>" : ""}
+        ${hasBTPending ? "<th>BT Pendiente</th>" : ""}
         <th>Priority</th>
         <th>Start</th>
         <th>End</th>
@@ -204,21 +218,23 @@ function renderMetricsTable() {
       </tr>
     </thead>
     <tbody>
-    ${processMetrics
-      .map(
-        (p) => `
+      ${processMetrics
+        .map(
+          (p) => `
         <tr>
           <td>${p.pid}</td>
           <td>${p.arrivalTime}</td>
           <td>${p.burstTime}</td>
+          ${hasBTConsumed ? `<td>${p.burstTimeConsumed}</td>` : ""}
+          ${hasBTPending ? `<td>${p.burstTimePending}</td>` : ""}
           <td>${p.priority}</td>
           <td>${p.startTime}</td>
           <td>${p.endTime}</td>
           <td>${p.waitingTime}</td>
         </tr>
-      `
-      )
-      .join("")}
+        `
+        )
+        .join("")}
     </tbody>
   `;
 

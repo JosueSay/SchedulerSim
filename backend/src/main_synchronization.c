@@ -112,10 +112,5 @@ int main()
                           events, &eventCount,
                           useMutex);
 
-  // Calcular y mostrar métricas
-  SimulationMetrics metrics = calculateMetrics(processes, processCount);
-  printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
-  exportSimulationEnd();
-
   return 0;
 }

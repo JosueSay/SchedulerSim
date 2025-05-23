@@ -50,7 +50,8 @@ typedef enum
   STATE_NEW,
   STATE_WAITING,
   STATE_ACCESSED,
-  STATE_TERMINATED
+  STATE_TERMINATED,
+  STATE_OMITED
 } ProcessState;
 
 /**
@@ -129,6 +130,7 @@ SimulationMetrics calculateMetrics(Process *processes, int processCount);
 void exportTimelineEvents(const char *filename, TimelineEvent *events, int eventCount);
 void exportMetrics(const char *filename, SimulationMetrics metrics);
 void exportProcessMetric(const Process *p);
+void exportProcessMetricWithOriginalBT(const Process *p, int originalBT);
 void exportEventRealtime(TimelineEvent *event);
 void exportSyncEventRealtime(TimelineEvent *event, ActionType action);
 void exportSimulationEnd();

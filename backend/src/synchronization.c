@@ -15,41 +15,44 @@ void initializeResources(Resource *resources, int resourceCount)
   }
 }
 
-// Simula sincronización usando mutex o semáforo con distinción entre READ y WRITE
+// Función principal que simula la sincronización con mutex o semáforo
 void simulateSynchronization(Process *processes, int processCount,
                              Resource *resources, int resourceCount,
                              Action *actions, int actionCount,
                              TimelineEvent *events, int *eventCount,
                              int useMutex)
 {
+  int currentCycle = 0; // Ciclo actual de simulación
+  int completed = 0;    // Número de procesos terminados
+  *eventCount = 0;      // Contador de eventos registrados
 
-  int currentCycle = 0;
-  int completed = 0;
-  *eventCount = 0;
+  // Variables de estado para control y métricas
+  bool newPrinted[MAX_PROCESSES] = {false};             // Para imprimir estado NEW solo una vez por proceso
+  int waitingCounters[MAX_PROCESSES] = {0};             // Contador de ciclos en WAITING por proceso
+  int firstActionCycle[MAX_PROCESSES];                  // Primer ciclo donde proceso realizó acción
+  int lastActionCycle[MAX_PROCESSES];                   // Último ciclo con acción realizada
+  bool started[MAX_PROCESSES] = {false};                // Marca si proceso inició ejecución
+  bool resourceUsedThisCycle[COMMON_MAX_LEN] = {false}; // Recursos usados en el ciclo actual
+  int originalBurstTimes[MAX_PROCESSES];                // Burst time original para métricas
+  bool actionProcessed[COMMON_MAX_LEN] = {false};       // Marca acciones ya evaluadas para evitar repetición
 
-  bool newPrinted[MAX_PROCESSES] = {false};
-  int waitingCounters[MAX_PROCESSES] = {0};
-  int firstActionCycle[MAX_PROCESSES];
-  int lastActionCycle[MAX_PROCESSES];
-  bool started[MAX_PROCESSES] = {false};
-  bool resourceUsedThisCycle[COMMON_MAX_LEN] = {false};
-
-  int starvationLimit = 20;
-  int noProgressCycles = 0;
-
+  // Inicializar arrays para control de ciclos y burst times originales
   for (int i = 0; i < processCount; i++)
   {
     firstActionCycle[i] = -1;
     lastActionCycle[i] = -1;
+    originalBurstTimes[i] = processes[i].burstTime;
   }
 
+  // Inicializar estado de los recursos
   initializeResources(resources, resourceCount);
 
+  // Bucle principal de simulación, avanza ciclo por ciclo hasta completar todos los procesos
   while (completed < processCount)
   {
-    int progressMade = 0;
+    int progressMade = 0; // Marca si se hizo progreso en este ciclo
 
-    // Imprimir eventos NEW para procesos que llegan
+    // Detectar procesos que llegan en el ciclo actual y mostrar estado NEW
     for (int i = 0; i < processCount; i++)
     {
       if (processes[i].arrivalTime == currentCycle && !newPrinted[i])
@@ -59,22 +62,25 @@ void simulateSynchronization(Process *processes, int processCount,
       }
     }
 
+    // Resetear marcas de recursos usados en este ciclo
     memset(resourceUsedThisCycle, 0, sizeof(bool) * resourceCount);
 
-    // Procesar acciones de cada proceso
+    // Evaluar acciones de cada proceso para el ciclo actual
     for (int i = 0; i < processCount; i++)
     {
+      // Saltar procesos terminados o que aún no llegaron
       if (processes[i].state == STATE_TERMINATED || processes[i].arrivalTime > currentCycle)
         continue;
 
       for (int j = 0; j < actionCount; j++)
       {
         Action *a = &actions[j];
-        if (strcmp(a->pid, processes[i].pid) != 0)
-          continue;
-        if (a->cycle > currentCycle)
+
+        // Saltar acciones ya procesadas o que no corresponden al proceso o ciclo actual
+        if (actionProcessed[j] || strcmp(a->pid, processes[i].pid) != 0 || a->cycle != currentCycle)
           continue;
 
+        // Buscar índice del recurso requerido
         int resIndex = -1;
         for (int k = 0; k < resourceCount; k++)
         {
@@ -85,37 +91,43 @@ void simulateSynchronization(Process *processes, int processCount,
           }
         }
         if (resIndex == -1)
-          continue;
-        Resource *r = &resources[resIndex];
+          continue; // Recurso no encontrado, saltar acción
 
-        int granted = 0;
-        granted = useMutex ? acquireMutex(r) : acquireSemaphore(r);
+        Resource *r = &resources[resIndex];
+        int granted = useMutex ? acquireMutex(r) : acquireSemaphore(r);
 
         if (granted)
         {
+          // Recurso concedido, marcar uso y registrar evento
           resourceUsedThisCycle[resIndex] = true;
-
           printEventForSyncProcess(&processes[i], currentCycle, STATE_ACCESSED, events, eventCount, a->action);
 
+          // Reducir burst time y registrar progreso
+          processes[i].burstTime--;
+          progressMade++;
+
+          // Registrar primer ciclo y último ciclo de acción para métricas
           if (!started[i])
           {
             firstActionCycle[i] = currentCycle;
             started[i] = true;
           }
           lastActionCycle[i] = currentCycle;
-
-          processes[i].burstTime--;
-          progressMade++;
-          break; // Solo una acción por ciclo
+        }
+        else
+        {
+          // No pudo adquirir recurso, proceso pasa a WAITING
+          waitingCounters[i]++;
+          printEventForSyncProcess(&processes[i], currentCycle, STATE_WAITING, events, eventCount, a->action);
         }
 
-        waitingCounters[i]++;
-        printEventForSyncProcess(&processes[i], currentCycle, STATE_WAITING, events, eventCount, ACTION_NONE);
+        // Marcar acción como procesada y salir del loop de acciones por proceso
+        actionProcessed[j] = true;
         break;
       }
     }
 
-    // Liberar recursos utilizados en este ciclo
+    // Liberar recursos usados en este ciclo
     for (int i = 0; i < resourceCount; i++)
     {
       if (resourceUsedThisCycle[i])
@@ -127,7 +139,7 @@ void simulateSynchronization(Process *processes, int processCount,
       }
     }
 
-    // Verificar procesos terminados
+    // Verificar procesos terminados (burstTime == 0)
     for (int i = 0; i < processCount; i++)
     {
       if (processes[i].state != STATE_TERMINATED && processes[i].burstTime == 0)
@@ -138,27 +150,119 @@ void simulateSynchronization(Process *processes, int processCount,
         processes[i].finishTime = lastActionCycle[i] + 1;
 
         printEventForSyncProcess(&processes[i], currentCycle, STATE_TERMINATED, events, eventCount, ACTION_NONE);
-        exportProcessMetric(&processes[i]);
+        exportProcessMetricWithOriginalBT(&processes[i], originalBurstTimes[i]);
         completed++;
       }
     }
 
-    // Detectar estancamiento
-    if (progressMade == 0)
+    // Detectar posibles deadlocks o bloqueos: no hay progreso y hay procesos esperando
+    bool waitingFound = false;
+    for (int i = 0; i < processCount; i++)
     {
-      noProgressCycles++;
-      if (noProgressCycles > starvationLimit)
+      if (processes[i].state != STATE_TERMINATED && waitingCounters[i] > 0)
       {
-        fprintf(stderr, "\nPosible deadlock: sin progreso por %d ciclos.\n", starvationLimit);
+        waitingFound = true;
         break;
       }
     }
-    else
+
+    if (waitingFound && progressMade == 0)
     {
-      noProgressCycles = 0;
+      fprintf(stderr, "\nDeadlock o bloqueo detectado: procesos en WAITING sin progreso. Omitiendo procesos bloqueados.\n");
+
+      // Finalizar procesos bloqueados con estado OMITED en lugar de TERMINATED si burstTime > 0
+      for (int i = 0; i < processCount; i++)
+      {
+        if (processes[i].state != STATE_TERMINATED && waitingCounters[i] > 0)
+        {
+          if (processes[i].burstTime > 0)
+          {
+            processes[i].state = STATE_OMITED;
+          }
+          else
+          {
+            processes[i].state = STATE_TERMINATED;
+          }
+          processes[i].waitingTime = waitingCounters[i];
+          processes[i].startTime = started[i] ? firstActionCycle[i] : -1;
+          processes[i].finishTime = currentCycle;
+
+          printEventForSyncProcess(&processes[i], currentCycle, processes[i].state, events, eventCount, ACTION_NONE);
+          exportProcessMetricWithOriginalBT(&processes[i], originalBurstTimes[i]);
+          completed++;
+        }
+      }
+      break; // Salir del while ya que no hay más progreso posible
     }
 
+    // --- Verificar procesos sin acciones pendientes pero con burstTime > 0 ---
+    for (int i = 0; i < processCount; i++)
+    {
+      if (processes[i].state != STATE_TERMINATED && processes[i].state != STATE_OMITED)
+      {
+        // Revisar si el proceso tiene acciones pendientes
+        bool hasPendingAction = false;
+        for (int j = 0; j < actionCount; j++)
+        {
+          if (!actionProcessed[j] && strcmp(actions[j].pid, processes[i].pid) == 0)
+          {
+            hasPendingAction = true;
+            break;
+          }
+        }
+
+        // Si no hay acciones pendientes y el proceso aún no terminó, omitirlo
+        if (!hasPendingAction)
+        {
+          processes[i].state = STATE_OMITED;
+          processes[i].waitingTime = waitingCounters[i];
+          processes[i].startTime = started[i] ? firstActionCycle[i] : -1;
+          processes[i].finishTime = currentCycle;
+
+          printEventForSyncProcess(&processes[i], currentCycle, processes[i].state, events, eventCount, ACTION_NONE);
+          exportProcessMetricWithOriginalBT(&processes[i], originalBurstTimes[i]);
+          completed++;
+        }
+      }
+    }
+
+    // Comprobar si todos los procesos están TERMINATED o OMITED y no hay acciones pendientes para terminar la simulación
+    bool allDone = true;
+    for (int i = 0; i < processCount; i++)
+    {
+      if (processes[i].state != STATE_TERMINATED && processes[i].state != STATE_OMITED)
+      {
+        allDone = false;
+        break;
+      }
+    }
+    bool pendingActions = false;
+    for (int j = 0; j < actionCount; j++)
+    {
+      if (!actionProcessed[j])
+      {
+        pendingActions = true;
+        break;
+      }
+    }
+
+    if (allDone && !pendingActions)
+    {
+      fprintf(stderr, "[DEBUG] Todos los procesos terminados u omitidos y sin acciones pendientes. Finalizando simulación.\n");
+      break;
+    }
+
+    // Avanzar ciclo y esperar un pequeño retardo para simular tiempo real
     currentCycle++;
     usleep(SIMULATION_DELAY_US);
   }
+
+  // --- FIN DE SIMULACIÓN ---
+
+  // Calcular métricas de la simulación y mostrarlas en formato JSON
+  SimulationMetrics metrics = calculateMetrics(processes, processCount);
+  printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
+
+  // Indicar el fin de la simulación (posiblemente para interfaz o logs)
+  exportSimulationEnd();
 }

@@ -21,6 +21,8 @@ const char *getProcessStateName(ProcessState state)
     return "ACCESSED";
   case STATE_TERMINATED:
     return "TERMINATED";
+  case STATE_OMITED:
+    return "OMITED";
   default:
     return "UNKNOWN";
   }
@@ -281,6 +283,20 @@ void exportProcessMetric(const Process *p)
       "\"startTime\": %d, \"endTime\": %d, \"waitingTime\": %d}\n",
       p->pid, p->arrivalTime, p->burstTime, p->priority,
       p->startTime, p->finishTime, p->waitingTime);
+  fflush(stdout);
+}
+
+void exportProcessMetricWithOriginalBT(const Process *p, int originalBT)
+{
+  int bt_consumido = originalBT - p->burstTime;
+  int bt_pendiente = p->burstTime;
+
+  printf(
+      "{\"event\": \"PROCESS_METRIC\", \"pid\": \"%s\", \"arrivalTime\": %d, "
+      "\"burstTime\": %d, \"burstTimeConsumed\": %d, \"burstTimePending\": %d, "
+      "\"priority\": %d, \"startTime\": %d, \"endTime\": %d, \"waitingTime\": %d}\n",
+      p->pid, p->arrivalTime, originalBT, bt_consumido, bt_pendiente,
+      p->priority, p->startTime, p->finishTime, p->waitingTime);
   fflush(stdout);
 }
 
