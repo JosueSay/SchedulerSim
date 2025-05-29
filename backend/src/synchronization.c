@@ -65,7 +65,6 @@ void simulateSynchronization(Process *processes, int processCount,
     // Resetear marcas de recursos usados en este ciclo
     memset(resourceUsedThisCycle, 0, sizeof(bool) * resourceCount);
 
-    // Evaluar acciones de cada proceso para el ciclo actual
     for (int i = 0; i < processCount; i++)
     {
       // Saltar procesos terminados o que aún no llegaron
@@ -80,7 +79,6 @@ void simulateSynchronization(Process *processes, int processCount,
         if (actionProcessed[j] || strcmp(a->pid, processes[i].pid) != 0 || a->cycle != currentCycle)
           continue;
 
-        // Buscar índice del recurso requerido
         int resIndex = -1;
         for (int k = 0; k < resourceCount; k++)
         {
@@ -91,18 +89,16 @@ void simulateSynchronization(Process *processes, int processCount,
           }
         }
         if (resIndex == -1)
-          continue; // Recurso no encontrado, saltar acción
+          continue;
 
         Resource *r = &resources[resIndex];
-        int granted = useMutex ? acquireMutex(r) : acquireSemaphore(r);
+        int sync_mth = useMutex ? acquireMutex(r) : acquireSemaphore(r);
 
-        if (granted)
+        if (sync_mth)
         {
-          // Recurso concedido, marcar uso y registrar evento
+          // marcar uso y registrar evento
           resourceUsedThisCycle[resIndex] = true;
           printEventForSyncProcess(&processes[i], currentCycle, STATE_ACCESSED, events, eventCount, a->action);
-
-          // Reducir burst time y registrar progreso
           processes[i].burstTime--;
           progressMade++;
 
@@ -116,12 +112,12 @@ void simulateSynchronization(Process *processes, int processCount,
         }
         else
         {
-          // No pudo adquirir recurso, proceso pasa a WAITING
+          // No pudo adquirir recurso = WAITING
           waitingCounters[i]++;
           printEventForSyncProcess(&processes[i], currentCycle, STATE_WAITING, events, eventCount, a->action);
         }
 
-        // Marcar acción como procesada y salir del loop de acciones por proceso
+        // Marcar acción como procesada
         actionProcessed[j] = true;
         break;
       }
@@ -155,7 +151,7 @@ void simulateSynchronization(Process *processes, int processCount,
       }
     }
 
-    // Detectar posibles deadlocks o bloqueos: no hay progreso y hay procesos esperando
+    // no hay progreso y hay procesos esperando
     bool waitingFound = false;
     for (int i = 0; i < processCount; i++)
     {
@@ -170,7 +166,7 @@ void simulateSynchronization(Process *processes, int processCount,
     {
       fprintf(stderr, "\nDeadlock o bloqueo detectado: procesos en WAITING sin progreso. Omitiendo procesos bloqueados.\n");
 
-      // Finalizar procesos bloqueados con estado OMITED en lugar de TERMINATED si burstTime > 0
+      // Finalizar procesos bloqueados con estado OMITED
       for (int i = 0; i < processCount; i++)
       {
         if (processes[i].state != STATE_TERMINATED && waitingCounters[i] > 0)
@@ -192,7 +188,7 @@ void simulateSynchronization(Process *processes, int processCount,
           completed++;
         }
       }
-      break; // Salir del while ya que no hay más progreso posible
+      break; // no hay más progreso posible
     }
 
     // --- Verificar procesos sin acciones pendientes pero con burstTime > 0 ---
