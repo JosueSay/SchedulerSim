@@ -22,19 +22,19 @@ void simulateSynchronization(Process *processes, int processCount,
                              TimelineEvent *events, int *eventCount,
                              int useMutex)
 {
-  int currentCycle = 0; // Ciclo actual de simulación
-  int completed = 0;    // Número de procesos terminados
-  *eventCount = 0;      // Contador de eventos registrados
+  int currentCycle = 0;
+  int completed = 0;
+  *eventCount = 0;
 
   // Variables de estado para control y métricas
-  bool newPrinted[MAX_PROCESSES] = {false};             // Para imprimir estado NEW solo una vez por proceso
-  int waitingCounters[MAX_PROCESSES] = {0};             // Contador de ciclos en WAITING por proceso
-  int firstActionCycle[MAX_PROCESSES];                  // Primer ciclo donde proceso realizó acción
-  int lastActionCycle[MAX_PROCESSES];                   // Último ciclo con acción realizada
-  bool started[MAX_PROCESSES] = {false};                // Marca si proceso inició ejecución
-  bool resourceUsedThisCycle[COMMON_MAX_LEN] = {false}; // Recursos usados en el ciclo actual
-  int originalBurstTimes[MAX_PROCESSES];                // Burst time original para métricas
-  bool actionProcessed[COMMON_MAX_LEN] = {false};       // Marca acciones ya evaluadas para evitar repetición
+  bool newPrinted[MAX_PROCESSES] = {false};
+  int waitingCounters[MAX_PROCESSES] = {0};
+  int firstActionCycle[MAX_PROCESSES];   // Primer ciclo donde proceso realizó acción
+  int lastActionCycle[MAX_PROCESSES];    // Último ciclo con acción realizada
+  bool started[MAX_PROCESSES] = {false}; // Marca si proceso inició ejecución
+  bool resourceUsedThisCycle[COMMON_MAX_LEN] = {false};
+  int originalBurstTimes[MAX_PROCESSES];
+  bool actionProcessed[COMMON_MAX_LEN] = {false};
 
   // Inicializar arrays para control de ciclos y burst times originales
   for (int i = 0; i < processCount; i++)
@@ -252,17 +252,12 @@ void simulateSynchronization(Process *processes, int processCount,
       break;
     }
 
-    // Avanzar ciclo y esperar un pequeño retardo para simular tiempo real
     currentCycle++;
     usleep(SIMULATION_DELAY_US);
   }
 
-  // --- FIN DE SIMULACIÓN ---
-
-  // Calcular métricas de la simulación y mostrarlas en formato JSON
+  // Calcular métricas de la simulación
   SimulationMetrics metrics = calculateMetrics(processes, processCount);
   printf("{\"type\": \"metrics\", \"Average Waiting Time\": %.2f}\n", metrics.avgWaitingTime);
-
-  // Indicar el fin de la simulación (posiblemente para interfaz o logs)
   exportSimulationEnd();
 }

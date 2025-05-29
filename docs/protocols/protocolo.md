@@ -1,4 +1,4 @@
-# Configuración de Protocolos de Comunicación y Estructuras de Entrada/Salida
+# Protocolo de Comunicación – SchedulerSim (Backend/Frontend)
 
 ## 1. Estructuras de Entrada
 

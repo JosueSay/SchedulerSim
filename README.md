@@ -56,21 +56,16 @@ SchedulerSim/
 
 ### Comando de Compilación (Backend en C)
 
-<!-- ```bash
-make -C backend/
-``` -->
+```bash
+make clean && make
+```
 
 ### Comando de Ejecución (Frontend en Python)
 
-<!-- ```bash
-cd frontend/
-python main.py
-``` -->
-
-## Casos de Uso
-
-<!-- *Por completar: Ejemplos de simulaciones y resultados esperados.* -->
-
-## Créditos
-
-<!-- *Por completar: Integrantes del equipo y roles asignados.* -->
+```bash
+cd frontend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements
+uvicorn main:app --reload --port 8000
+```

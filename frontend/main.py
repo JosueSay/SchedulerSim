@@ -1,7 +1,5 @@
-# main.py - Backend principal para SchedulerSim
-
 from fastapi import FastAPI, Request, UploadFile, File, Cookie, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import asyncio
@@ -26,6 +24,11 @@ templates = Jinja2Templates(directory="templates")
 DATA_INPUT_DIR = "../data/input/"
 DATA_OUTPUT_DIR = "../data/output/"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "prod")
+LOG_SH = "scheduling_simulator.log"
+LOG_SYNC = "synchronization_simulator.log"
+BIN_SH = "../backend/bin/scheduling-simulator"
+BIN_SYNC = "../backend/bin/synchronization-simulator"
+
 
 # ======================== RUTAS DE PÁGINAS ========================
 
@@ -106,11 +109,11 @@ async def websocketSimulationScheduling(websocket: WebSocket):
         os.makedirs(DATA_OUTPUT_DIR, exist_ok=True)
 
         # Abrir archivo para escribir log
-        log_path = os.path.join(DATA_OUTPUT_DIR, "scheduling_simulator.log")
+        log_path = os.path.join(DATA_OUTPUT_DIR, LOG_SH)
         log_file = open(log_path, "w", encoding="utf-8")
 
         process = await asyncio.create_subprocess_exec(
-            "../backend/bin/scheduling-simulator",
+            BIN_SH,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -169,11 +172,11 @@ async def websocketSimulationSynchronization(websocket: WebSocket):
         config = json.loads(configData)
 
         os.makedirs(DATA_OUTPUT_DIR, exist_ok=True)
-        log_path = os.path.join(DATA_OUTPUT_DIR, "synchronization_simulator.log")
+        log_path = os.path.join(DATA_OUTPUT_DIR, LOG_SYNC)
         log_file = open(log_path, "w", encoding="utf-8")
 
         process = await asyncio.create_subprocess_exec(
-            "../backend/bin/synchronization-simulator",
+            BIN_SYNC,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
